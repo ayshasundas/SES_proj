@@ -5,7 +5,7 @@
 int main(void) {
 	DDRG |= 0x02;
 	while (1) {
-		_delay_ms(500);
+		_delay_ms(400);
 		PORTG ^= 0x02;
 	}
 	return 0;
