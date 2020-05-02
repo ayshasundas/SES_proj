@@ -8,6 +8,7 @@
 /**add two variables, uses call-by-value (copy of variables is passed)
  */
 uint8_t add(uint8_t a, uint8_t b) {
+    printf("a and b in add function = %x and %x\n", a, b);
     a += b;
     return a;
 }
@@ -15,14 +16,20 @@ uint8_t add(uint8_t a, uint8_t b) {
 /**swap two variables, uses call-by-pointer (pointer to variables is passed)
  */
 void swap(uint8_t *a, uint8_t *b) {
+    printf("*a in swap function = %x\n",*a);
     uint8_t c = *a;
+    printf("c in swap function = %x\n",c);
     *a = *b;
+    printf("*a = *b in swap function = %x\n",*a);
     *b = c;
+    printf("*b=c in swap function = %x\n",*b);
 }
 
 typedef uint8_t (*aFunctionPointer_t)(uint8_t a, uint8_t b);
 
 
+uint8_t add(uint8_t a, uint8_t b);
+void swap(uint8_t *a, uint8_t *b);
 
 int main(void) {
     printf("!!!Hello World!!!\n");
@@ -33,7 +40,7 @@ int main(void) {
     uint8_t *c = &a;
 
     // call some functions
-    printf("a=%d\nb=%d\n", a, b);
+    printf("a=%x\nb=%d\nc=%x\n", &a, b, c);
     printf("result of add: a+b=%d\n", add(a, b));
 
     swap(&a, &b);
@@ -56,7 +63,7 @@ int main(void) {
     printf("3|5=%d\n", 3 | 5);
 
     // use hex and decimal numbers/ operation AND
-    printf("0xf2&7=0x%02x\n", 0xf2 & 7);
+    printf("0xf2&7=0x%02x\n", 0xf2 & 7);   //Why 02
 
     // use binary numbers/ operation XOR
     printf("0xb1011^0xb1100=%d \n", 0b1011 ^ 0b1100);
