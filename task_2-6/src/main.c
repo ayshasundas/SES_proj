@@ -1,7 +1,9 @@
 /* INCLUDES ******************************************************************/
-
+#include <avr/io.h>
+#include <util/delay.h>
 #include "ses_common.h"
 #include "ses_led.h"
+#include "ses_lcd.h"
 
 /* DEFINES & MACROS **********************************************************/
 
@@ -14,6 +16,13 @@
 
 #define LED_GREEN_PORT 		PORTF //PF6
 #define LED_GREEN_PIN       	6
+
+// BUTTON wiring on SES board
+#define BUTTON_JOYSTICK_PORT       	PORTB //PB7
+#define BUTTON_JOYSTICK_PIN         	7
+
+#define BUTTON_ROTARY_PORT 	   PORTB //PB6
+#define BUTTON_ROTARY_PIN      	6
 
 /* FUNCTION DEFINITION *******************************************************/
 
@@ -78,3 +87,67 @@ void led_greenOff(void) {
 // TODO
 LED_GREEN_PORT |= (1<< LED_GREEN_PIN );
 }
+//*******************BUTTON FUNCTIONS ***************************************
+void button_init(void){
+DDR_REGISTER(BUTTON_JOYSTICK_PORT) &= (~(1 << BUTTON_JOYSTICK_PIN));
+DDR_REGISTER(BUTTON_ROTARY_PORT) &= (~(1 << BUTTON_ROTARY_PIN));
+BUTTON_JOYSTICK_PORT |= (1 << BUTTON_JOYSTICK_PIN);
+BUTTON_ROTARY_PORT |= (1 << BUTTON_ROTARY_PIN);
+}
+
+bool button_isJoystickPressed(void){
+if((PIN_REGISTER(BUTTON_JOYSTICK_PORT) & (1 << BUTTON_JOYSTICK_PIN))==0){
+    return 1;
+}
+else{
+    return 0;
+}
+}
+
+bool button_isRotaryPressed(void){
+if((PIN_REGISTER(BUTTON_ROTARY_PORT) & (1 << BUTTON_ROTARY_PIN))==0){
+    return 1;
+}
+else{
+    return 0;
+}
+}
+
+int main(void)
+{
+lcd_init();
+led_redInit();
+led_greenInit();
+button_init();
+int i=0;
+while(1){
+
+fprintf(lcdout, "Time since reset \n %d sec",i);
+
+if(button_isJoystickPressed()==1 && button_isRotaryPressed()==1)	{
+	led_redOn();
+	led_greenOn();
+}
+
+else if(button_isJoystickPressed()==1){
+led_greenOn();
+}
+
+else if(button_isRotaryPressed()==1){
+led_redOn();
+}
+
+else
+{
+led_greenOff();
+led_redOff();
+}
+
+i++;
+_delay_ms(1000);
+lcd_clear();
+lcd_init();
+}
+
+}
+

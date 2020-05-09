@@ -37,7 +37,8 @@ int main(void) {
     // define some variables
     uint8_t a = 3;
     uint8_t b = 5;
-    uint8_t *c = &a;
+    uint8_t *c ;
+    c=&a;
 
     // call some functions
     printf("a=%x\nb=%d\nc=%x\n", &a, b, c);
@@ -47,7 +48,7 @@ int main(void) {
     printf("result of swap: a=%d, b=%d\n", a, b);
 
     *c = add(a, b);
-    printf("result of add: c=%d\n", *c);
+    printf("result of add: *c=%d\n", *c);
     printf("result of add: a+b=%d?\n", add(a, b));
 
     printf("result of add: 200+100=%d?\n", add(200, 100));
