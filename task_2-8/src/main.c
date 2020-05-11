@@ -36,7 +36,7 @@ ADCSRA|=128;
 }
 
 uint16_t adc_read(uint8_t adc_channel){
-
+adc_init();
 uint16_t res=0;
 
 if((adc_channel==2) | (adc_channel==4) | (adc_channel==5)){	
@@ -64,12 +64,28 @@ else{
 
 }	
 
+int16_t adc_getTemperature(void){
+	
+int16_t adc = adc_read(ADC_TEMP_CH);
+//int16_t ADC_TEMP_FACTOR=100;
+int16_t ADC_TEMP_MAX=40, ADC_TEMP_MIN=20,ADC_TEMP_RAW_MAX=257, ADC_TEMP_RAW_MIN=483;
+//int16_t slope = ((ADC_TEMP_MAX - ADC_TEMP_MIN)*ADC_TEMP_FACTOR) / (ADC_TEMP_RAW_MIN-ADC_TEMP_RAW_MAX);
+//int16_t offset = (ADC_TEMP_MAX + (ADC_TEMP_RAW_MAX * slope));
+int16_t tempvalue=(((ADC_TEMP_MAX + (ADC_TEMP_RAW_MAX * ((ADC_TEMP_MAX - ADC_TEMP_MIN)) / (ADC_TEMP_RAW_MIN-ADC_TEMP_RAW_MAX))))-(adc * ((ADC_TEMP_MAX - ADC_TEMP_MIN)) / (ADC_TEMP_RAW_MIN-ADC_TEMP_RAW_MAX)));
+return tempvalue;
+}
+
+
 int main(void){
-adc_init();	
+	
 uart_init(57600);
-uint16_t adcvalue= adc_read(ADC_TEMP_CH);
+while(1){
+int16_t light=adc_read(ADC_LIGHT_CH);
+//_delay_ms(2500);
+int16_t tempres= adc_getTemperature();
 
-fprintf(uartout, "adc raw value %x \n ",adcvalue);
-
+fprintf(uartout, "temperature in C  %d \n  Light sensor value %d\n  ",tempres,light);
+_delay_ms(2500);
+}
 return 0;
 }
