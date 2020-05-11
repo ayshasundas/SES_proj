@@ -11,6 +11,7 @@
 
 /* to signal that the given channel was invalid */
 #define ADC_INVALID_CHANNEL    0xFFFF
+#define ADC_PRESCALE        3
 
 enum ADCChannels {
   ADC_MIC_NEG_CH=0,                     /* ADC0 */
