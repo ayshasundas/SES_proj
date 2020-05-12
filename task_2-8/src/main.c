@@ -66,15 +66,19 @@ return res;
 else{
 	return ADC_INVALID_CHANNEL;
 }
-
-
 }	
 
 int16_t adc_getTemperature(void){
-	
+
 int16_t adc = adc_read(ADC_TEMP_CH);
-int16_t tempvalue= (((ADC_TEMP_MAX*10 + (ADC_TEMP_RAW_MAX *10 * ((ADC_TEMP_MAX - ADC_TEMP_MIN)) / (ADC_TEMP_RAW_MIN-ADC_TEMP_RAW_MAX))))-(adc*10 * ((ADC_TEMP_MAX - ADC_TEMP_MIN)) / (ADC_TEMP_RAW_MIN-ADC_TEMP_RAW_MAX)));
-return tempvalue;
+
+int16_t slope = ((ADC_TEMP_MAX - ADC_TEMP_MIN)*1000) / (ADC_TEMP_RAW_MAX - ADC_TEMP_RAW_MIN);
+int16_t offset = (ADC_TEMP_MAX)*1000 - (ADC_TEMP_RAW_MAX * (slope));
+int16_t temp = (adc * slope + offset)/100 ;
+
+
+//int16_t tempvalue= (((ADC_TEMP_MAX*10 + (ADC_TEMP_RAW_MAX *10 * ((ADC_TEMP_MAX - ADC_TEMP_MIN)) / (ADC_TEMP_RAW_MIN-ADC_TEMP_RAW_MAX))))-(adc*10 * ((ADC_TEMP_MAX - ADC_TEMP_MIN)) / (ADC_TEMP_RAW_MIN-ADC_TEMP_RAW_MAX)));
+return temp;
 }
 
 
@@ -86,7 +90,7 @@ int16_t light=adc_read(ADC_LIGHT_CH);
 //_delay_ms(2500);
 int16_t temp= adc_getTemperature();
 int16_t tempc=temp/10;
-fprintf(uartout, "TEMPERATURE %3u.%1u\n LIGHT %u",tempc,temp-(tempc*10),temp,light);
+fprintf(uartout, "TEMPERATURE %3u.%1u\n LIGHT %u \n",tempc,temp-(tempc*10),light);
 _delay_ms(2500);
 }
 return 0;
