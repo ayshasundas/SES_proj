@@ -26,25 +26,30 @@ DDR_REGISTER(JOYSTICK_PORT) &= (~(1 << JOYSTICK_PIN));
 TEMP_SENSOR_PORT &= (~(1 << TEMP_SENSOR_PIN));
 LIGHT_SENSOR_PORT &= (~(1 << LIGHT_SENSOR_PIN));
 JOYSTICK_PORT &= (~(1 << JOYSTICK_PIN));
-PRR0 &= (~(1));
-ADMUX |= ADC_VREF_SRC<<6;
-ADMUX &= (~(1<<5));
-ADCSRA=((ADCSRA | ADC_PRESCALE ) & 251); 
-ADCSRA &= 223;
-ADCSRA|=128;
+PRR0 &= (~(1<<PRADC));
+ADMUX |= ADC_VREF_SRC<<REFS0;
+ADMUX &= (~(1<<ADLAR));
+ADCSRA=((ADCSRA | ADC_PRESCALE ) & (~(1<<ADPS2))); 
+ADCSRA &= (~(1<<ADATE));
+ADCSRA|=(1<<ADEN);
 
 }
 
-uint16_t adc_read(uint8_t adc_channel){
+void adc_dis(void)
+{
+	ADCSRA &= (~(1<<ADEN));
+}
 
+uint16_t adc_read(uint8_t adc_channel){
+adc_init();
 uint16_t res=0;
 
-if((adc_channel==2) | (adc_channel==4) | (adc_channel==5)){	
+if((adc_channel==ADC_TEMP_CH) | (adc_channel==ADC_LIGHT_CH) | (adc_channel==ADC_JOYSTICK_CH)){	
 ADMUX = ((ADMUX & (~15)) | adc_channel); 	
-ADCSRA |= (1<<6);	
+ADCSRA |= (1<<ADSC);	
 while(1){
 
-if((ADCSRA & (1 << 6))==0){
+if((ADCSRA & (1 << ADSC))==0){
 res=ADCW;
 break;
 }
@@ -55,13 +60,13 @@ else
 }
 
 }
+adc_dis();
 return res;
 }
 else{
+	adc_dis();
 	return ADC_INVALID_CHANNEL;
 }
-
-
 }	
 
 int main(void){

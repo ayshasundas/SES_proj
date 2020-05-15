@@ -5,7 +5,7 @@ void wait(uint16_t millis)
 {
     uint16_t i;
     while(millis>0){
-    for (i = 4570; i > 0 ; i--) 
+    for (i = 3199; i > 0 ; i--) 
     {
         //prevent code optimization by using inline assembler
         asm volatile ( "nop" ); // one cycle with no operation

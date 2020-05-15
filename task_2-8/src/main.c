@@ -21,7 +21,7 @@
 #define ADC_TEMP_MIN 		20
 #define ADC_TEMP_RAW_MAX	257
 #define ADC_TEMP_RAW_MIN	483	
-//#define ADC_TEMP_FACTOR		30	
+#define ADC_TEMP_FACTOR		50	
 
 
 void adc_init(void){
@@ -32,25 +32,30 @@ DDR_REGISTER(JOYSTICK_PORT) &= (~(1 << JOYSTICK_PIN));
 TEMP_SENSOR_PORT &= (~(1 << TEMP_SENSOR_PIN));
 LIGHT_SENSOR_PORT &= (~(1 << LIGHT_SENSOR_PIN));
 JOYSTICK_PORT &= (~(1 << JOYSTICK_PIN));
-PRR0 &= (~(1));
-ADMUX |= ADC_VREF_SRC<<6;
-ADMUX &= (~(1<<5));
-ADCSRA=((ADCSRA | ADC_PRESCALE ) & 251); 
-ADCSRA &= 223;
-ADCSRA|=128;
+PRR0 &= (~(1<<PRADC));
+ADMUX |= ADC_VREF_SRC<<REFS0;
+ADMUX &= (~(1<<ADLAR));
+ADCSRA=((ADCSRA | ADC_PRESCALE ) & (~(1<<ADPS2))); 
+ADCSRA &= (~(1<<ADATE));
+ADCSRA|=(1<<ADEN);
 
+}
+
+void adc_dis(void)
+{
+	ADCSRA &= (~(1<<ADEN));
 }
 
 uint16_t adc_read(uint8_t adc_channel){
 adc_init();
 uint16_t res=0;
 
-if((adc_channel==2) | (adc_channel==4) | (adc_channel==5)){	
+if((adc_channel==ADC_TEMP_CH) | (adc_channel==ADC_LIGHT_CH) | (adc_channel==ADC_JOYSTICK_CH)){	
 ADMUX = ((ADMUX & (~15)) | adc_channel); 	
-ADCSRA |= (1<<6);	
+ADCSRA |= (1<<ADSC);	
 while(1){
 
-if((ADCSRA & (1 << 6))==0){
+if((ADCSRA & (1 << ADSC))==0){
 res=ADCW;
 break;
 }
@@ -61,9 +66,11 @@ else
 }
 
 }
+adc_dis();
 return res;
 }
 else{
+	adc_dis();
 	return ADC_INVALID_CHANNEL;
 }
 }	
@@ -71,14 +78,17 @@ else{
 int16_t adc_getTemperature(void){
 
 int16_t adc = adc_read(ADC_TEMP_CH);
-
-int16_t slope = ((ADC_TEMP_MAX - ADC_TEMP_MIN)*1000) / (ADC_TEMP_RAW_MAX - ADC_TEMP_RAW_MIN);
-int16_t offset = (ADC_TEMP_MAX)*1000 - (ADC_TEMP_RAW_MAX * (slope));
-int16_t temp = (adc * slope + offset)/100 ;
-
-
-//int16_t tempvalue= (((ADC_TEMP_MAX*10 + (ADC_TEMP_RAW_MAX *10 * ((ADC_TEMP_MAX - ADC_TEMP_MIN)) / (ADC_TEMP_RAW_MIN-ADC_TEMP_RAW_MAX))))-(adc*10 * ((ADC_TEMP_MAX - ADC_TEMP_MIN)) / (ADC_TEMP_RAW_MIN-ADC_TEMP_RAW_MAX)));
+if(adc==ADC_INVALID_CHANNEL)
+{
+	return ADC_INVALID_CHANNEL;
+}
+else
+{
+int16_t slope = ((ADC_TEMP_MAX - ADC_TEMP_MIN)*ADC_TEMP_FACTOR	*10) / (ADC_TEMP_RAW_MAX - ADC_TEMP_RAW_MIN);//unit is 1/10
+int16_t offset = (ADC_TEMP_MAX*ADC_TEMP_FACTOR)	 - ((ADC_TEMP_RAW_MAX * slope)/10);
+int16_t temp = ((((adc * slope)/10) + offset)*10)/ADC_TEMP_FACTOR ;// unit is 1/10
 return temp;
+}
 }
 
 
