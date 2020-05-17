@@ -22,4 +22,8 @@ bool button_isJoystickPressed(void);
  */
 bool button_isRotaryPressed(void);
 
+typedef void (*pButtonCallback)();
+void button_setRotaryButtonCallback(pButtonCallback callback);
+void button_setJoystickButtonCallback(pButtonCallback callback);
+
 #endif /* SES_BUTTON_H_ */
