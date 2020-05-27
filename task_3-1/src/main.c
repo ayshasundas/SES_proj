@@ -16,40 +16,42 @@
 #define LED_GREEN_PORT 		PORTF //PF6
 #define LED_GREEN_PIN       	6
  
-volatile  pButtonCallback joystick;
- volatile pButtonCallback rotary;
+volatile  pButtonCallback joystick; // global volatile function pointer for joystick button callback
+volatile pButtonCallback rotary; // global volatile function pointer for rotary button callback
  
 void led_greenInit(void) {
-// TODO
+// Initializing green led 
 DDR_REGISTER(LED_GREEN_PORT)|= (1 << LED_GREEN_PIN);
+LED_GREEN_PORT |= (1<< LED_GREEN_PIN );
 }
 
 void led_greenToggle(void) {
-// TODO
+// Toggling green led
 LED_GREEN_PORT ^= (1 << LED_GREEN_PIN);
 }
 void led_greenOff(void) {
-// TODO
+// Turning green led off
 LED_GREEN_PORT |= (1<< LED_GREEN_PIN );
 }
 
 void led_redInit(void) {
-// TODO
+// Initializing red led
 DDR_REGISTER(LED_RED_PORT)|= (1<< LED_RED_PIN );
-
+LED_RED_PORT |= (1 << LED_RED_PIN);
 }
 
 void led_redToggle(void) {
-// TODO
+// toggling red led
 LED_RED_PORT ^= (1<< LED_RED_PIN );
 }
 void led_redOff(void) {
-// TODO
+// Turning red led off
 LED_RED_PORT |= (1 << LED_RED_PIN);
 }
 
 
 void button_init(void){
+//initializing buttons for both joystick and rotary and also enabling the interrupts for these buttons using pin change interrupt register
 DDR_REGISTER(BUTTON_JOYSTICK_PORT) &= (~(1 << BUTTON_JOYSTICK_PIN));
 DDR_REGISTER(BUTTON_ROTARY_PORT) &= (~(1 << BUTTON_ROTARY_PIN));
 BUTTON_JOYSTICK_PORT |= (1 << BUTTON_JOYSTICK_PIN);
@@ -60,6 +62,7 @@ PCMSK0 |= ((1<<PCINT7));
 }
 
 bool button_isJoystickPressed(void){
+//checking if joystick button is pressed
 if((PIN_REGISTER(BUTTON_JOYSTICK_PORT) & (1 << BUTTON_JOYSTICK_PIN)) == 0){
     return 1;
 }
@@ -69,6 +72,7 @@ else{
 }
 
 bool button_isRotaryPressed(void){
+//checking if rotary button is pressed
 if((PIN_REGISTER(BUTTON_ROTARY_PORT) & (1 << BUTTON_ROTARY_PIN)) == 0){
     return 1;
 }
@@ -79,22 +83,24 @@ else{
 
 
 ISR(PCINT0_vect){
-// execute callbacks here
+// callback for ISR name= pcint0_vect
+//It toggles the red led if interrupt for joystick button is triggered
+//It toggles the green led if interrupt for rotary button is triggered
 if (button_isJoystickPressed()==1 && ((PCMSK0 & (1<<PCINT7))!=0)){
 
-   joystick= led_redToggle;
+  button_setJoystickButtonCallback(joystick);
 
 }
 else if(button_isRotaryPressed()==1 && ((PCMSK0 & (1<<PCINT6))!=0)){
 
-     rotary= led_greenToggle;
+    button_setRotaryButtonCallback(rotary); 
    
 }
 }
 
 void button_setJoystickButtonCallback(pButtonCallback callback)
-{
-    if(callback)
+{//callback for joystick button
+    if(callback!=NULL)
 {
 callback();
 }
@@ -104,8 +110,8 @@ callback();
 
 
 void button_setRotaryButtonCallback(pButtonCallback callback)
-{
-    if(callback)
+{//callback for rotary button
+    if(callback!=NULL)
 {
 callback();
 }
@@ -118,22 +124,19 @@ callback();
 
 
 
-/**Toggles the red LED of the SES-board*/
+//main function
 int main(void) {
 
-uart_init(57600); 
-joystick= led_redOff;
-rotary= led_greenOff;
+joystick= led_redToggle; // passing address to the function pointer for joystick_button callback
+rotary= led_greenToggle; // passing address to the function pointer for joystick_button callback
 led_redInit();
 led_greenInit();
-sei();
+sei();// enabling global interrupts
 button_init();
 
 while(1)
 {
-button_setJoystickButtonCallback(joystick);
-_delay_ms(1000);
-button_setRotaryButtonCallback(rotary);
+//doing nothing just wasting CPU cycles :D
 }
 
 }

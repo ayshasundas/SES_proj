@@ -18,8 +18,9 @@
 /* FUNCTION DEFINITION *******************************************************/
 
 void led_redInit(void) {
-// TODO
+// making it as output port 
 DDR_REGISTER(LED_RED_PORT)|= (1<< LED_RED_PIN );
+LED_RED_PORT |= (1 << LED_RED_PIN);
 
 }
 
@@ -39,9 +40,9 @@ LED_RED_PORT |= (1 << LED_RED_PIN);
 }
 
 void led_yellowInit(void) {
-// TODO
+// making it as output port
 DDR_REGISTER(LED_YELLOW_PORT)|= (1 << LED_YELLOW_PIN);
-
+LED_YELLOW_PORT |= ( 1<< LED_YELLOW_PIN);
 }
 
 void led_yellowToggle(void) {
@@ -60,8 +61,9 @@ LED_YELLOW_PORT |= ( 1<< LED_YELLOW_PIN);
 }
 
 void led_greenInit(void) {
-// TODO
+// making it as output port
 DDR_REGISTER(LED_GREEN_PORT)|= (1 << LED_GREEN_PIN);
+LED_GREEN_PORT |= (1<< LED_GREEN_PIN );
 }
 
 void led_greenToggle(void) {

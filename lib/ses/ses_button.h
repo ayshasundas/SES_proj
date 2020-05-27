@@ -22,7 +22,7 @@ bool button_isJoystickPressed(void);
  */
 bool button_isRotaryPressed(void);
 
-typedef void (*pButtonCallback)();
+typedef void (*pButtonCallback)();//defining function pointer type
 void button_setRotaryButtonCallback(pButtonCallback callback);
 void button_setJoystickButtonCallback(pButtonCallback callback);
 

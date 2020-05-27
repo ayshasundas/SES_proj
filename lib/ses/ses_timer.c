@@ -3,16 +3,19 @@
 
 /* DEFINES & MACROS **********************************************************/
 #define TIMER1_CYC_FOR_5MILLISEC    //TODO
-#define TIMER2_CYC_FOR_1MILLISEC	//TODO 
+#define TIMER2_CYC_FOR_1MILLISEC   249	//Top(value stored in OCRA) value to be compared to with counter
 
 
 /*FUNCTION DEFINITION ********************************************************/
 void timer2_setCallback(pTimerCallback cb) {
 	// TODO
+
+
 }
 
 void timer2_start() {
 	// TODO
+	TCCR2A|=(1<<WGM21);
 }
 
 
