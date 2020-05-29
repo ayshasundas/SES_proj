@@ -33,11 +33,12 @@ fprintf(uartout, "joystick pressed %x\n maskreg %x\n",button_isJoystickPressed()
 if ( (button_isJoystickPressed()==1) && ((PCMSK0 & (1<<PCINT7)) != 0) ){
 fprintf(uartout, "joystick\n");
  joystick();
- 
+_delay_ms(500);
 }
 else if(button_isRotaryPressed()==1 && ((PCMSK0 & (1<<PCINT6))!=0)){
 
 rotary(); 
+_delay_ms(500);
 fprintf(uartout, "rotary\n");  
 }
 }
@@ -129,7 +130,8 @@ timer1_setCallback(button_checkState);
 else{
 fprintf(uartout,"button init\n");
 PCICR |= (1 << PCIE0);
-PCMSK0 |= ((1<<PCINT6) | (1<<PCINT7));
+PCMSK0 |= ((1<<PCINT6));
+PCMSK0 |= (1<<PCINT7);
 fprintf(uartout,"pcmsk0 in init %x \n ",PCMSK0);
 }
 }
