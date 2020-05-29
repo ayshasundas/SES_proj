@@ -10,7 +10,7 @@
 /**
  * Initializes rotary encoder and joystick button
  */
-void button_init(void);
+void button_init(bool debouncing);
 
 /** 
  * Get the state of the joystick button.
