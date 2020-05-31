@@ -11,8 +11,8 @@
 #define BUTTON_ROTARY_PIN      	6
 
 
-#define BUTTON_NUM_DEBOUNCE_CHECKS  7 // TODO
-#define BUTTON_DEBOUNCE_PERIOD 25// TODO
+#define BUTTON_NUM_DEBOUNCE_CHECKS  5 // TODO
+#define BUTTON_DEBOUNCE_PERIOD 6// TODO
 #define BUTTON_DEBOUNCE_POS_JOYSTICK 0x01
 #define BUTTON_DEBOUNCE_POS_ROTARY 0x02
 
@@ -106,20 +106,22 @@ for(uint8_t i = 0; i < BUTTON_NUM_DEBOUNCE_CHECKS; i++) {
 j = j & state[i];
 
 }
+lastDebouncedState=debouncedState;
 debouncedState = j;
-static uint16_t counter=0;
-counter++;
-if(counter >= BUTTON_DEBOUNCE_PERIOD){
-if( (debouncedState & BUTTON_DEBOUNCE_POS_JOYSTICK) == BUTTON_DEBOUNCE_POS_JOYSTICK){
+//static uint16_t counter=0;
+//counter++;
+//if(counter >= BUTTON_DEBOUNCE_PERIOD){
+if ((lastDebouncedState!=debouncedState) & ((debouncedState & BUTTON_DEBOUNCE_POS_JOYSTICK) == BUTTON_DEBOUNCE_POS_JOYSTICK)){
 joystick();
 fprintf(uartout,"joystick\n");
 }
-if( (debouncedState & BUTTON_DEBOUNCE_POS_ROTARY) == BUTTON_DEBOUNCE_POS_ROTARY ){
+//if( (debouncedState & BUTTON_DEBOUNCE_POS_ROTARY) == BUTTON_DEBOUNCE_POS_ROTARY ){
+if ((lastDebouncedState!=debouncedState) & ((debouncedState & BUTTON_DEBOUNCE_POS_ROTARY) == BUTTON_DEBOUNCE_POS_ROTARY)){
 rotary(); 
 fprintf(uartout,"rotary\n");
 }
-counter=0;
-}
+//counter=0;
+//}
 }
 
 void button_init(bool debouncing){
