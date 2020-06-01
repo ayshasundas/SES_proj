@@ -84,7 +84,6 @@ static uint8_t state[BUTTON_NUM_DEBOUNCE_CHECKS] = {};
 static uint8_t index = 0;
 static uint8_t debouncedState = 0;
 uint8_t lastDebouncedState = debouncedState;
-//uart_init(57600);
 // each bit in every state byte represents one button
 state[index] = 0;
 if(button_isJoystickPressed()) {
@@ -106,22 +105,21 @@ for(uint8_t i = 0; i < BUTTON_NUM_DEBOUNCE_CHECKS; i++) {
 j = j & state[i];
 
 }
-lastDebouncedState=debouncedState;
+
 debouncedState = j;
-//static uint16_t counter=0;
-//counter++;
-//if(counter >= BUTTON_DEBOUNCE_PERIOD){
+
 if ((lastDebouncedState!=debouncedState) & ((debouncedState & BUTTON_DEBOUNCE_POS_JOYSTICK) == BUTTON_DEBOUNCE_POS_JOYSTICK)){
 joystick();
-fprintf(uartout,"joystick\n");
+
 }
-//if( (debouncedState & BUTTON_DEBOUNCE_POS_ROTARY) == BUTTON_DEBOUNCE_POS_ROTARY ){
-if ((lastDebouncedState!=debouncedState) & ((debouncedState & BUTTON_DEBOUNCE_POS_ROTARY) == BUTTON_DEBOUNCE_POS_ROTARY)){
+
+else if ((lastDebouncedState!=debouncedState) & ((debouncedState & BUTTON_DEBOUNCE_POS_ROTARY) == BUTTON_DEBOUNCE_POS_ROTARY)){
 rotary(); 
-fprintf(uartout,"rotary\n");
+
+
 }
-//counter=0;
-//}
+
+
 }
 
 void button_init(bool debouncing){
@@ -136,7 +134,6 @@ if(debouncing) {
 timer1_setCallback(button_checkState);
 }
 else{
-fprintf(uartout, "else\n");
 PCICR |= (1 << PCIE0);
 PCMSK0 |= ((1<<PCINT6));
 PCMSK0 |= (1<<PCINT7);
