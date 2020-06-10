@@ -21,6 +21,11 @@ bool button_isJoystickPressed(void);
  * Get the state of the rotary button.
  */
 bool button_isRotaryPressed(void);
+/**
+ * For debouncing the buttons
+ */ 
+
+void button_checkState(void);
 
 typedef void (*pButtonCallback)();//defining function pointer type
 void button_setRotaryButtonCallback(pButtonCallback callback);
