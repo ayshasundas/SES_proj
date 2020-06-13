@@ -2,6 +2,7 @@
 #include "ses_timer.h"
 #include "ses_scheduler.h"
 #include "util/atomic.h"
+#include "ses_uart.h"
 
 /* PRIVATE VARIABLES **************************************************/
 /** list of scheduled tasks */
@@ -11,15 +12,19 @@ static taskDescriptor* taskList = NULL;
 static void scheduler_update(void) {
 	// TODO
 	taskDescriptor *n=taskList;	
-	while( (n!=NULL) && (n->period>0) )
-	{
+	while(n!=NULL)
+	{	if(n->expire > 0)
+		{
 		n->expire = (n->expire) - 1;
+		}
 		if(n->expire==0)
 		{
 			n->execute=1;
 			n->expire=n->period;
 		}
+		
 		n=n->next;
+		
 	}
 }
 
@@ -35,7 +40,9 @@ void scheduler_run() {
 	// TODO
 	
 	while(1)
-	{	taskDescriptor *n=taskList;	
+	{	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) 
+		{
+		taskDescriptor *n=taskList;	
 		while(n!=NULL)
 		{
 			if(n->execute==1 && n->period>0)
@@ -43,13 +50,15 @@ void scheduler_run() {
 				n->task((void *) n->param);
 				n->execute=0;
 			}
-			else if(n->period == 0)
+			else if( n->execute==1 && n->period==0)
 			{
 				n->task((void *) n->param);
+				n->execute=0;
 				scheduler_remove(n);
 			}
 			
 			n=n->next;
+		}
 		}
 		
 
@@ -115,8 +124,13 @@ void scheduler_remove(taskDescriptor * toRemove) {
 	// TODO
 ATOMIC_BLOCK(ATOMIC_RESTORESTATE) 
 {
-	taskDescriptor *n=taskList;	
-	
+	taskDescriptor *n=taskList;
+	taskDescriptor *prev;
+	while(n!=NULL){	
+	fprintf(uartout,"task list before remove %x\n",n);
+	n= n->next; 
+	}
+	n=taskList;
 	while (n != NULL) 
 	{ 
 		if(taskList==toRemove)// if task to be removed lies at the head of the list
@@ -126,13 +140,19 @@ ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 		break;
 		}
 
-		else if(n->next==toRemove)
+		else if(n==toRemove)
 		{
-			n->next=n->next->next;
-			n->next->next=NULL;
+			prev->next=n->next;
+			n->next=NULL;
 			break;
 		}
+		prev=n;
 		n = n->next; 
+	}
+	n=taskList;
+	while(n!=NULL){	
+	fprintf(uartout,"task list after remove %x\n",n);
+	n= n->next; 
 	}
 	n=NULL;
 }	
