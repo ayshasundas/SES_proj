@@ -17,66 +17,65 @@
 
 /* FUNCTION DEFINITION *******************************************************/
 
-void led_redInit(void) {
-// making it as output port 
-DDR_REGISTER(LED_RED_PORT)|= (1<< LED_RED_PIN );
-LED_RED_PORT |= (1 << LED_RED_PIN);
-
+void led_redInit(void) 
+{
+    DDR_REGISTER(LED_RED_PORT)|= (1<< LED_RED_PIN );// making port for red led as output
+    LED_RED_PORT |= (1 << LED_RED_PIN);//for turning led off initially
 }
 
-void led_redToggle(void) {
-// TODO
-LED_RED_PORT ^= (1<< LED_RED_PIN );
+void led_redToggle(void) 
+{
+    LED_RED_PORT ^= (1<< LED_RED_PIN );
 }
 
-void led_redOn(void) {
-// TODO
-LED_RED_PORT &= (~(1 << LED_RED_PIN));
+void led_redOn(void)
+{
+    LED_RED_PORT &= (~(1 << LED_RED_PIN));
 }
 
-void led_redOff(void) {
-// TODO
-LED_RED_PORT |= (1 << LED_RED_PIN);
+void led_redOff(void) 
+{
+    LED_RED_PORT |= (1 << LED_RED_PIN);
 }
 
-void led_yellowInit(void) {
-// making it as output port
-DDR_REGISTER(LED_YELLOW_PORT)|= (1 << LED_YELLOW_PIN);
-LED_YELLOW_PORT |= ( 1<< LED_YELLOW_PIN);
+void led_yellowInit(void) 
+{
+    DDR_REGISTER(LED_YELLOW_PORT)|= (1 << LED_YELLOW_PIN);// making port for yellow led as output
+    LED_YELLOW_PORT |= ( 1<< LED_YELLOW_PIN);//for turning led off initially
 }
 
-void led_yellowToggle(void) {
-// TODO
-LED_YELLOW_PORT ^= (1 << LED_YELLOW_PIN);
+void led_yellowToggle(void) 
+{
+    LED_YELLOW_PORT ^= (1 << LED_YELLOW_PIN);
 }
 
-void led_yellowOn(void) {
-// TODO
-LED_YELLOW_PORT &= (~(1 << LED_YELLOW_PIN));
+void led_yellowOn(void) 
+{
+    LED_YELLOW_PORT &= (~(1 << LED_YELLOW_PIN));
 }
 
-void led_yellowOff(void) {
-// TODO
-LED_YELLOW_PORT |= ( 1<< LED_YELLOW_PIN);
+void led_yellowOff(void) 
+{
+    LED_YELLOW_PORT |= ( 1<< LED_YELLOW_PIN);
 }
 
-void led_greenInit(void) {
-// making it as output port
-DDR_REGISTER(LED_GREEN_PORT)|= (1 << LED_GREEN_PIN);
-LED_GREEN_PORT |= (1<< LED_GREEN_PIN );
+void led_greenInit(void) 
+{
+    DDR_REGISTER(LED_GREEN_PORT)|= (1 << LED_GREEN_PIN);// making port for green led as output
+    LED_GREEN_PORT |= (1<< LED_GREEN_PIN );//for turning led off initially
 }
 
-void led_greenToggle(void) {
-// TODO
-LED_GREEN_PORT ^= (1 << LED_GREEN_PIN);
+void led_greenToggle(void)
+{
+    LED_GREEN_PORT ^= (1 << LED_GREEN_PIN);
 }
 
-void led_greenOn(void) {
-// TODO
-LED_GREEN_PORT &= (~(1 << LED_GREEN_PIN) );
+void led_greenOn(void) 
+{
+    LED_GREEN_PORT &= (~(1 << LED_GREEN_PIN) );
 }
 
-void led_greenOff(void) {
-// TODO
-LED_GREEN_PORT |= (1<< LED_GREEN_PIN );
+void led_greenOff(void)
+{
+    LED_GREEN_PORT |= (1<< LED_GREEN_PIN );
 }

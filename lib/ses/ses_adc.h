@@ -39,7 +39,10 @@ enum JoystickDirections {
  * Initializes the ADC
  */
 void adc_init(void);
-
+/**
+ * Disables the ADC
+ */
+void adc_dis(void);
 /**
  * Read the raw ADC value of the given channel
  * @adc_channel The channel as element of the ADCChannels enum
