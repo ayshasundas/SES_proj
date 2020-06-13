@@ -5,14 +5,13 @@
 #include "ses_button.h"
 #include "ses_timer.h"
 #include "ses_lcd.h"
-#include "ses_uart.h"
 #include "ses_scheduler.h"
 #include "util/atomic.h"
 
 
 #define Counter_value_rotary_for_1dsec        20 //for (1/10) of a second which is 1 deci second
-#define first_time_button_pressed     1 // showing that any button is pressed first time
-#define second_time_button_pressed     2 // showing that any button is pressed second time
+#define first_time_button_pressed             1 // showing that any button is pressed first time
+#define second_time_button_pressed            2 // showing that any button is pressed second time
 
 
 static volatile int flag_rotary = 0;//shared variable in "callback_for_rotary" and "Stopwatch" task 
@@ -140,7 +139,6 @@ void button_debouncing(void * ptr)
 
 int main(void) 
 {
-    uart_init(57600);
     button_setJoystickButtonCallback(callback_for_joystick);
     button_setRotaryButtonCallback(callback_for_rotary);
     lcd_init();
