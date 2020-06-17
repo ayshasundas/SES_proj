@@ -1,9 +1,9 @@
-#include "ses_timer.h"
+
 #include "pscheduler.h"
 #include "ses_uart.h"
 
 #define TIMER2_CYC_FOR_1MILLISEC   	249 //Top(value stored in OCRA) value to be compared with counter
-void * pxCurrentTCB;
+void * CurrentTCB;
 void *first;
 
 
@@ -56,19 +56,19 @@ void timer2_start()
 					"push	r29						\n\t"	\
 					"push	r30						\n\t"	\
 					"push	r31						\n\t"	\
-					"lds	r26, pxCurrentTCB		\n\t"	\
-					"lds	r27, pxCurrentTCB + 1	\n\t"	\
+					"lds	r26, CurrentTCB		   	\n\t"	\
+					"lds	r27, CurrentTCB	 + 1	\n\t"	\
 					"in		r0,  __SP_L__ 			\n\t"	\
 					"st		x+, r0					\n\t"	\
 					"in		r0,  __SP_H__ 			\n\t"	\
 					"st		x+, r0					\n\t"	\
-				);
+					);
 
 
 
 #define portRESTORE_CONTEXT()								\
-	asm volatile (	"lds	r26, pxCurrentTCB		\n\t"	\
-					"lds	r27, pxCurrentTCB + 1	\n\t"	\
+	asm volatile (	"lds	r26, CurrentTCB		    \n\t"	\
+					"lds	r27, CurrentTCB + 1	    \n\t"	\
 					"ld		r28, x+					\n\t"	\
 					"out	__SP_L__, r28			\n\t"	\
 					"ld		r29, x+					\n\t"	\
@@ -112,15 +112,32 @@ void timer2_start()
 
 
 
-void context_switch()
+void context_switch(void)
 {  
 
 }
 
+void vPortYieldFromTick( void )
+{
+	
+ /* This is a naked function so the context
+ is saved. */
+ portSAVE_CONTEXT();
+
+ /* See if a context switch is required.
+ Switch to the context of a task made ready
+ to run by vTaskIncrementTick() if it has a
+ priority higher than the interrupted task. */
+context_switch();
+ /* Restore the context. If a context switch
+ has occurred this will restore the context of
+ the task being resumed. */
+ portRESTORE_CONTEXT();
+ /* Return from this naked function. */
+ asm volatile ( "ret" );
 
 
-
-
+}
 
 /**This is a so-called "naked" interrupt and thus the compiler
  * creates no additional assembler code when entering/ leaving
@@ -129,16 +146,8 @@ void context_switch()
  *
  */
 ISR(TIMER2_COMPA_vect, ISR_NAKED) 
-{ 
-	/* Save the context.*/ 	  
-	portSAVE_CONTEXT(); 
-	/* See if a context switch is required. 
-	Switch to the context of a task made ready to run by Task_update().
-	*/    
-	context_switch(); 
-	/* Restore the context.  
-	If a context switch has occurred this will restore the context of the task being resumed. */    
-	portRESTORE_CONTEXT(); 
+{ 	 
+	vPortYieldFromTick();
 	/* Return from the interrupt. 
 	If a context switch has occurred this will return to a different task. */  
 	asm volatile ("reti \n\t");
@@ -149,8 +158,8 @@ ISR(TIMER2_COMPA_vect, ISR_NAKED)
 
 void pscheduler_run(task_t * TL, uint8_t numtasks)
 {   
-	SP=&t1.stack[255];
-	pxCurrentTCB=t1.pstack;
+	SP=(&t1.stack[255]);
+	CurrentTCB=&t1.pstack;
 	timer2_start();
 	TL[0]();
 

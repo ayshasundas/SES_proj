@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
+#include <string.h>
 #include "pscheduler.h"
 #include "ses_led.h"
 
@@ -59,7 +60,7 @@ uint8_t numTasks = 2;
 int main(void) {
   memset(t1.stack,0,TASK_STACK_SIZE);
   memset(t2.stack,0,TASK_STACK_SIZE);
-  stack_init();
+  //stack_init();
   pscheduler_run(taskList, numTasks);
   return 0;
     

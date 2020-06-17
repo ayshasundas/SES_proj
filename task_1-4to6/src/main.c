@@ -32,7 +32,7 @@ uint8_t add(uint8_t a, uint8_t b);
 void swap(uint8_t *a, uint8_t *b);
 
 int main(void) {
-    printf("!!!Hello World!!!\n");
+    printf("!!!Hello World!!!\nThe size of a void pointer is %ld bytes!\n", sizeof(void *));
 
     // define some variables
     uint8_t a = 3;

@@ -28,6 +28,28 @@ LED_GREEN=2,
 LED_YELLOW=3
 };
 
+/*********************************** Stopwatch Task ********************************************/
+
+void stopwatch(void * ptr)
+{   //Function for stopwatch
+    // Starts stopwatch when rotary button is pressed first time
+    //Stops when rotary button is pressed second time
+    static int counter_stopwatch=0;
+    static int deci_sec=0;
+       
+    counter_stopwatch++; 
+    if(counter_stopwatch==Counter_value_rotary_for_1dsec )
+    {   
+        lcd_clear();
+        lcd_init();
+        deci_sec++;
+        fprintf(lcdout,"Current time: %d.%d s",deci_sec/10,deci_sec%10);
+        counter_stopwatch=0;
+     }
+        
+    
+}
+
 /*********************************** Non-Periodic Task for turning off yellow led after 5sec ********************************************/
 
 void Yellow_led_Off(void * ptr)
@@ -67,40 +89,24 @@ void callback_for_joystick(void)
 void callback_for_rotary(void)
 {   // A Flagging Funbction For indicating either rotary button is pressed for first time or second time,
     // in order to start or stop the stopwatch
-     flag_rotary++; 
+     flag_rotary++;
+     if(flag_rotary==first_time_button_pressed) 
+     {
+        td3.period=5;  
+        td3.expire=td3.period;
+        td3.param=NULL;  
+        td3.task=stopwatch;
+        scheduler_add(&td3); 
+     }
+     else if(flag_rotary==second_time_button_pressed)
+     {
+         scheduler_remove(&td3);
+         flag_rotary=0;
+     }
          
 }
 
-/*********************************** Stopwatch Task ********************************************/
 
-void stopwatch(void * ptr)
-{   //Function for stopwatch
-    // Starts stopwatch when rotary button is pressed first time
-    //Stops when rotary button is pressed second time
-    static int counter_stopwatch=0;
-    static int deci_sec=0;
-    if(flag_rotary==first_time_button_pressed)
-        {   
-            counter_stopwatch++; 
-            if(counter_stopwatch==Counter_value_rotary_for_1dsec )
-                {   
-                    lcd_clear();
-                    lcd_init();
-                    deci_sec++;
-                    fprintf(lcdout,"Current time: %d.%d s",deci_sec/10,deci_sec%10);
-                    counter_stopwatch=0;
-                 }
-        }
-    else if(flag_rotary==second_time_button_pressed )
-        {
-            lcd_clear();
-            lcd_init();
-            fprintf(lcdout,"Stop watch stopped\n");
-            fprintf(lcdout,"Time: %d.%d s",deci_sec/10,deci_sec%10);
-            flag_rotary=0;
-            deci_sec=0;
-        }
-}
 
 /*********************************** For LED Toggle Task ********************************************/
 
@@ -158,14 +164,10 @@ int main(void)
     td2.param=NULL;  
     td2.task=button_debouncing;
 
-    td3.period=5;  
-    td3.expire=td3.period;
-    td3.param=NULL;  
-    td3.task=stopwatch;
+
 
     scheduler_add(&td1);
     scheduler_add(&td2);
-    scheduler_add(&td3);
 
     scheduler_init();
     sei();
