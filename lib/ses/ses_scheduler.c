@@ -7,6 +7,7 @@
 /* PRIVATE VARIABLES **************************************************/
 /** list of scheduled tasks */
 static taskDescriptor* taskList = NULL;
+taskDescriptor *task_run;
 
 /*FUNCTION DEFINITION *************************************************/
 static void scheduler_update(void) 
@@ -43,20 +44,25 @@ void scheduler_run()
 			taskDescriptor *n=taskList;//temporary pointer for traversing the task list
 			while(n!=NULL)
 			{
-				if( (n->execute) && (n->period>0))
+				if(n->execute)
 				{
-					n->task((void *) n->param);
-					n->execute=0;
-				}
-				else if( (n->execute) && (!(n->period)))
-				{
-					n->task((void *) n->param);
-					n->execute=0;
-					scheduler_remove(n);
+					task_run=n;
+					break;
 				}
 				
 				n=n->next;
 			}
+		}
+		if( (task_run->execute) && (task_run->period>0) )
+		{
+			task_run->task((void *) task_run->param);
+			task_run->execute=0;
+		}
+		else if( (task_run->execute) && (!(task_run->period)))
+		{
+			task_run->task((void *) task_run->param);
+			task_run->execute=0;
+			scheduler_remove(task_run);
 		}
 		
 	}
