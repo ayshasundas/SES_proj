@@ -5,7 +5,7 @@
 
 #define TASK_STACK_SIZE	256
 typedef void (*task_t)(void);
-void vPortYieldFromTick( void ) __attribute__ ( ( naked ) );
+
 
 
 /**The state of a task must be stored in

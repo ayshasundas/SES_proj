@@ -3,18 +3,7 @@
 #include <string.h>
 #include "pscheduler.h"
 #include "ses_led.h"
-
-void stack_init(void)
-{
-  
-uint16_t pc_addr=&t2.stack[255];
-t2.stack[TASK_STACK_SIZE-1]=(pc_addr & 0x00FF);//lower address
-t2.stack[TASK_STACK_SIZE-2]=(pc_addr>>8);//higher address
-
-
-}
-
-
+#include "ses_uart.h"
 
 void taskA (void) 
 {
@@ -48,6 +37,24 @@ while (1)
  }
  
 }
+
+void stack_init(void)
+{
+
+task_t pc_add= (&taskB);
+
+uint16_t pc_addr= (uint16_t)pc_add;
+
+t2.stack[TASK_STACK_SIZE-1]=(pc_addr & 0x00FF);//lower address;
+
+
+t2.stack[TASK_STACK_SIZE-2]=(pc_addr>>8);//higher address
+
+
+
+t2.pstack=&(t2.stack[TASK_STACK_SIZE-36]);
+
+}
 task_t taskList[] = {taskA, taskB};
 uint8_t numTasks = 2;
 
@@ -58,9 +65,10 @@ uint8_t numTasks = 2;
 
 
 int main(void) {
+  uart_init(57600); 
   memset(t1.stack,0,TASK_STACK_SIZE);
   memset(t2.stack,0,TASK_STACK_SIZE);
-  //stack_init();
+  stack_init();
   pscheduler_run(taskList, numTasks);
   return 0;
     
