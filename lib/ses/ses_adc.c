@@ -18,6 +18,13 @@
 #define ADC_VREF_SRC       				3
 #define For_clearing_first_four_bits	15	
 
+#define ADC_TEMP_MAX 					40//in degrees Celcius
+#define ADC_TEMP_MIN 					20//in degrees Celcius
+#define ADC_TEMP_RAW_MAX				257
+#define ADC_TEMP_RAW_MIN				483	
+#define ADC_TEMP_FACTOR					50	
+
+#define unit_10							10
 
 
 void adc_init(void)
@@ -76,4 +83,20 @@ else
 	adc_dis();
 	return ADC_INVALID_CHANNEL;
 }
-}	
+}
+
+int16_t adc_getTemperature(void)
+{ 
+	int16_t adc = adc_read(ADC_TEMP_CH);
+	if(adc==ADC_INVALID_CHANNEL)
+	{
+		return ADC_INVALID_CHANNEL;
+	}
+	else
+	{
+		int16_t slope = ((ADC_TEMP_MAX - ADC_TEMP_MIN)*ADC_TEMP_FACTOR	*unit_10) / (ADC_TEMP_RAW_MAX - ADC_TEMP_RAW_MIN);//unit is 1/10
+		int16_t offset = (ADC_TEMP_MAX*ADC_TEMP_FACTOR)	 - ((ADC_TEMP_RAW_MAX * slope)/unit_10);
+		int16_t temp = ((((adc * slope)/unit_10) + offset)*unit_10)/ADC_TEMP_FACTOR ;// unit is 1/10
+		return temp;
+	}
+}

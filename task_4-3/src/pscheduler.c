@@ -3,8 +3,11 @@
 #include "ses_uart.h"
 
 #define TIMER2_CYC_FOR_1MILLISEC   	249 //Top(value stored in OCRA) value to be compared with counter
+#define First_task_halted			1
+#define Second_task_halted			2
+#define Third_task_halted			3
 
-volatile int flag=0;
+volatile int flag=0;// For running tasks sequentially (TaskA,TaskB,TaskC)
 
 void timer2_start() 
 {
@@ -102,14 +105,19 @@ void timer2_start()
 
 void context_switch(void)
 { 
-if(flag==1)
+//Switch to next task in sequence	
+if(flag==First_task_halted)
 {	 
 	SP=(uint16_t)t2.pstack;
 }
-else if(flag==2)
+else if(flag==Second_task_halted)
+{
+	SP=(uint16_t)t3.pstack;
+}
+else if(flag==Third_task_halted)
 {
 	SP=(uint16_t)t1.pstack;
-	flag=0;
+	flag=0;//Flag being reset
 }
 }
 
@@ -122,27 +130,29 @@ else if(flag==2)
  */
 ISR(TIMER2_COMPA_vect, ISR_NAKED) 
 { 	 
-	portSAVE_CONTEXT();
+	portSAVE_CONTEXT();//Saving the context of the task being halted
 	flag++;
-	if(flag==1)
+	//Storing the SP for task being halted, which will be used for restoring the context
+	if(flag==First_task_halted)
 	{
 		t1.pstack=(void *)SP;
 		
 	}
-	else if(flag==2)
+	else if(flag==Second_task_halted)
 	{
 		t2.pstack=(void *)SP;
 		
 	}
+	else if(flag==Third_task_halted)
+	{
+		t3.pstack=(void *)SP;
+		
+	}
 
-	/* See if a context switch is required.
-	Switch to the context of a task made ready
-	to run by vTaskIncrementTick() if it has a
-	priority higher than the interrupted task. */
+	/* Switch to the context of next task */
 	context_switch();
-	/* Restore the context. If a context switch
-	has occurred this will restore the context of
-	the task being resumed. */
+	/* Restore the context of
+	the task being resumed */
 	portRESTORE_CONTEXT();
 	/* Return from the interrupt. 
 	If a context switch has occurred this will return to a different task. */  
@@ -154,12 +164,9 @@ ISR(TIMER2_COMPA_vect, ISR_NAKED)
 
 void pscheduler_run(task_t * TL, uint8_t numtasks)
 {   
-	SP=(uint16_t)(&t1.stack[255]);
-	timer2_start();
-	sei();
-	TL[0]();
-
-
-   
+	SP=(uint16_t)(&t1.stack[255]);//Giving SP the address of highest memory location of taskA's stack
+	timer2_start();//starting timer2 with 1ms period
+	sei();//Enabling global interrupts
+	TL[0]();//Executing task A
 
 }
