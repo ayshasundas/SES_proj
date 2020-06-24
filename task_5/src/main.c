@@ -16,7 +16,7 @@ void callback_for_joystick(void)
     if(flag_joystick==first_time_button_pressed )
         {
             //OCR0B=0;
-             pwm_setDutyCycle(170);
+             pwm_setDutyCycle(130);
              //led_redOn();
         }
     else if(flag_joystick==second_time_button_pressed)
