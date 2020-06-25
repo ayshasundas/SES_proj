@@ -49,7 +49,7 @@ void timer1_setCallback(pTimerCallback cb)
 
 void timer1_start() 
 {
-	// setting CTC mode of operation, enabling the compare match A interrupt, setting prescalar to 64
+	// setting CTC mode of operation, enabling the compare match A interrupt, setting prescalar to 1024
 	// And setting Top(value stored in OCRA) value to be compared to with counter to 77
 	TCCR1B|= ((1<<WGM12) | (1<<CS12) | (1<<CS10));
 	TCCR1A &= (~((1<<WGM10) | (1<<WGM11)));

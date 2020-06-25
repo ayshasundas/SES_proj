@@ -5,9 +5,10 @@
 #include "ses_common.h"
 
 
-void motorFrequency_init();
-uint16_t motorFrequency_getRecent();
-uint16_t motorFrequency_getMedian();
+void motorFrequency_init(void);
+uint16_t motorFrequency_getRecent(void);
+uint16_t motorFrequency_getMedian(void);
+void timer5_start();
 
 
 
