@@ -44,12 +44,17 @@
 		},
 		{
 			"path": "task_5"
+		},
+		{
+			"path": "task_5-c"
 		}
 	],
 	"settings": {
 		"files.associations": {
 			"ses_led.h": "c",
-			"io.h": "c"
+			"io.h": "c",
+			"__tuple": "c",
+			"array": "c"
 		}
 	}
 }

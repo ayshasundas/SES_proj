@@ -2,17 +2,40 @@
 #include "ses_motorFrequency.h"
 #include "ses_led.h"
 #include <avr/io.h>
+#include "util/atomic.h"
 
 #define INT0_PORT       	       PORTD //PD0
 #define INT0_PIN                   0
 
 #define TIMER5_CYC_FOR_100MILLISEC   	 25000 //Top(value stored in OCRA) value to be compared with counter
-#define Counter_Value_For_1sec           10
-#define N                                10
+#define Counter_Value_For_100msec           2
+#define N                                8
 static volatile uint16_t counter_spikes=0;
-volatile uint16_t num_spikes_in_1sec=0;
+volatile uint16_t num_spikes_in_100msec=0;
 uint16_t num_spikes_ini=0;
-uint16_t array[N];
+uint16_t num_spikes_inst=0;
+volatile uint16_t array[N]={0};
+uint16_t b1=0,b2=0;
+
+void sort(int n, volatile uint16_t* ptr) 
+{ 
+    uint16_t t; 
+  
+    // Sort the numbers using pointers 
+    for (int i = 0; i < n; i++) { 
+  
+        for (int j = i + 1; j < n; j++) { 
+  
+            if (*(ptr + j) < *(ptr + i)) { 
+  
+                t = *(ptr + i); 
+                *(ptr + i) = *(ptr + j); 
+                *(ptr + j) = t; 
+            } 
+        } 
+    }
+
+}    
 
 void motorFrequency_init(void)
 {
@@ -22,9 +45,21 @@ void motorFrequency_init(void)
     EIMSK |= (1<< INT0);
 }
 
+uint16_t motorFrequency_getMedian(void)
+{
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+    sort(N, array);
+    int a=N/2;
+    b1=array[a-1];
+    b2=array[a];
+    }
+    uint16_t median_spike_100msec=(b1+b2)/2; 
+    return (uint16_t)((median_spike_100msec*10)/6);
+}
+
 uint16_t motorFrequency_getRecent(void)
 {
-    return (uint16_t)(num_spikes_in_1sec/(1*6));//in Hertz
+    return (uint16_t)((num_spikes_in_100msec*10)/(1*6));//in Hertz
 }
 
 void timer5_start() 
@@ -46,14 +81,29 @@ counter++;
 if(counter==1)
 {
     num_spikes_ini=counter_spikes;
+    
 }
-else if(counter >= Counter_Value_For_1sec)
-{	
-    num_spikes_in_1sec=counter_spikes-num_spikes_ini;
+
+else if(counter == Counter_Value_For_100msec)
+{	static int i=0;
+    num_spikes_in_100msec=counter_spikes-num_spikes_ini;
+    array[i]=num_spikes_in_100msec;
+    
+    if(i==N-1)
+    {
+        i=0;
+    }
+    else
+    {
+       i++; 
+    }
+    
     counter=0;
     counter_spikes=0;
 
 }
+
+
 
 }
 
