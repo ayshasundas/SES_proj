@@ -8,7 +8,7 @@
 #include "ses_lcd.h"
 #include "ses_scheduler.h"
 
-static volatile int flag_joystick = 0;
+/*static volatile int flag_joystick = 0;
 static taskDescriptor td1;
 uint16_t motorSpeed_rpm=0;
 
@@ -31,10 +31,10 @@ void callback_for_joystick(void)
             //led_redOff();
             flag_joystick=0;
         } 
-}
+}*/
 
 
-void Motor_freq_rpm(void * ptr)
+/*void Motor_freq_rpm(void * ptr)
 {
     lcd_init();
     lcd_clear();
@@ -55,7 +55,7 @@ void Motor_freq_rpm(void * ptr)
     fprintf(uartout, "Motor freq in rpm median\n%d\n",(motorFrequency_getMedian())*60);
 
 
-}
+}*/
 
 
 
@@ -63,27 +63,46 @@ int main(void)
 {
     
     uart_init(57600);
-
-    td1.period=1000;  
-    td1.expire=td1.period;
-    td1.param=NULL;  
-    td1.task=Motor_freq_rpm;
-
-    scheduler_add(&td1);
-
-    
-    pwm_init();
-    led_greenInit();
-    led_yellowInit();
-    button_setJoystickButtonCallback(callback_for_joystick);
-    button_init(1); 
-    timer1_start();
-    motorFrequency_init();
-
-    scheduler_init();
-    timer5_start();
-    sei();
-    scheduler_run();
-    
-
+    lcd_init();
+    uint8_t i=0;
+    uint8_t j=0;
+    int flag=0;
+    while(1)
+    {
+      
+       if(i<32 && flag==0)
+       {
+            lcd_setPixel(i, j, 1);
+       lcd_setPixel(i, j+1, 1);
+       lcd_setPixel(i+1, j, 1);
+       lcd_setPixel(i+1, j+1, 1);
+       lcd_setPixel(i+2, j, 1);
+       lcd_setPixel(i+2, j+1, 1);
+           i=i+1;
+           
+       }
+       else
+       {
+           flag=1;
+            lcd_setPixel(i, j, 1);
+       lcd_setPixel(i, j+1, 1);
+       lcd_setPixel(i-1, j, 1);
+       lcd_setPixel(i-1, j+1, 1);
+       lcd_setPixel(i-2, j, 1);
+       lcd_setPixel(i-2, j+1, 1);
+           i--;
+           if(i==0)
+           {
+               flag=0;
+           }
+       }
+       
+       
+       //lcd_setPixel(i+1, j, 1); 
+       //lcd_setPixel(i+1, j+1, 1);
+       
+       j=j+1;
+       
+    }
+  
 }

@@ -7,11 +7,11 @@
 #define INT0_PORT       	       PORTD //PD0
 #define INT0_PIN                   0
 
-#define TIMER5_CYC_FOR_100MILLISEC   	 25000 //Top(value stored in OCRA) value to be compared with counter
-#define Counter_Value_For_100msec           2
-#define N                                8
+#define TIMER5_CYC_FOR_10MILLISEC    	 2499 //Top(value stored in OCRA) value to be compared with counter
+#define Counter_Value_For_10msec           2
+#define N                                  90
 static volatile uint16_t counter_spikes=0;
-volatile uint16_t num_spikes_in_100msec=0;
+volatile uint16_t num_spikes_in_10msec=0;
 uint16_t num_spikes_ini=0;
 uint16_t num_spikes_inst=0;
 volatile uint16_t array[N]={0};
@@ -53,24 +53,24 @@ uint16_t motorFrequency_getMedian(void)
     b1=array[a-1];
     b2=array[a];
     }
-    uint16_t median_spike_100msec=(b1+b2)/2; 
-    return (uint16_t)((median_spike_100msec*10)/6);
+    uint16_t median_spike_10msec=(b1+b2)/2; 
+    return (uint16_t)((median_spike_10msec*100)/6);
 }
 
 uint16_t motorFrequency_getRecent(void)
 {
-    return (uint16_t)((num_spikes_in_100msec*10)/(1*6));//in Hertz
+    return (uint16_t)((num_spikes_in_10msec*100)/6);//in Hertz
 }
 
 void timer5_start() 
 {
 	// setting CTC mode of operation, enabling the compare match A interrupt, setting prescalar to 64
-	// And setting Top(value stored in OCRA) value to be compared to with counter to 25000
+	// And setting Top(value stored in OCRA) value to be compared to with counter to 249
 	TCCR5B|= ((1<<WGM52) | (1<<CS51) | (1<<CS50));
 	TCCR5A &= (~((1<<WGM50) | (1<<WGM51)));
 	TCCR5B &= (~((1<<WGM53) | (1<<CS52)));
     TIMSK5 |= (1<<OCIE5A);
-	OCR5A=TIMER5_CYC_FOR_100MILLISEC;
+	OCR5A=TIMER5_CYC_FOR_10MILLISEC ;
 }
 
 void softwareTimer5(void){
@@ -84,10 +84,10 @@ if(counter==1)
     
 }
 
-else if(counter == Counter_Value_For_100msec)
+else if(counter == Counter_Value_For_10msec)
 {	static int i=0;
-    num_spikes_in_100msec=counter_spikes-num_spikes_ini;
-    array[i]=num_spikes_in_100msec;
+    num_spikes_in_10msec=counter_spikes-num_spikes_ini;
+    array[i]=num_spikes_in_10msec;
     
     if(i==N-1)
     {
