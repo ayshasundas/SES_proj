@@ -10,7 +10,11 @@
 
 
 void pwm_init(void)
-{
+{   
+    //Enabling timer0
+    //Fast Pwm mode, setting WGM02-00 to 3 (top value defined as 0xFF)
+    //disabled pre-scalar
+    //Receiving pulse at pin OC0B
 
     DDR_REGISTER(OC0B_PORT) |= (1 << OC0B_PIN);
     PRR0 &= (~(1<<PRTIM0));
@@ -25,6 +29,7 @@ void pwm_init(void)
 
 void pwm_setDutyCycle(uint8_t dutyCycle)
 {
+    //Setting the duty cycle for pulse received at pin OC0B
     
     OCR0B=dutyCycle;
 }
