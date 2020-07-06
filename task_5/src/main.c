@@ -78,7 +78,7 @@ int main(void)
     led_yellowInit();
     button_setJoystickButtonCallback(callback_for_joystick);
     button_init(1);
-    timer1_start();
+    timer1_start();// for button check state func
     motorFrequency_init();
     scheduler_init();
     timer5_start();
