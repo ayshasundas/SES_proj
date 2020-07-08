@@ -63,13 +63,13 @@ uint16_t motorFrequency_getMedian(void)
         b2 = array[a];
     }
     uint16_t median_spike_10msec = (b1 + b2) / 2;
-    return (uint16_t)((median_spike_10msec * 100) / 6);//in hertz
+    return (uint16_t)(median_spike_10msec * 100);//in hertz
 }
 
 uint16_t motorFrequency_getRecent(void)
 {
     //calculates the most recent frequency measurement in Hertz
-    return (uint16_t)((num_spikes_in_10msec * 100) / 6); //in Hertz
+    return (uint16_t)(num_spikes_in_10msec * 100); //in Hertz
 }
 
 void timer5_start()

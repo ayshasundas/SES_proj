@@ -2,41 +2,17 @@
 #include "ses_button.h"
 #include "ses_pwm.h"
 #include "ses_motorFrequency.h"
+#include "pid_controller.h"
 #include "ses_timer.h"
 #include "ses_led.h"
 #include "ses_uart.h"
 #include "ses_lcd.h"
 #include "ses_scheduler.h"
 
-uint8_t err = 0, Kp = 0, Ki = 0, Kd = 0, u = 0, Perr = 0;
-uint16_t F_tar = 9000, F_curr = 0, P = 0, D = 0, it = 0;
 
-void pid_controller_init(uint8_t kp, uint8_t ki, uint8_t kd)
-{
-    Kp = kp;
-    Ki = ki;
-    Kd = kd;
-}
 
-uint8_t pid_controller()
-{   
-    F_curr=motorFrequency_getRecent()*60;
-    err = F_tar - F_curr;
-    P = Kp * err;
-    it = (it * 10) + (err * Ki * 1); //unit is 1/10
-    D = Kd * (Perr - err) * 10;
-    Perr = err;
-    u = (P * 10 + it + D * 10) / 10;
-    if (u < 0)
-    {
-        u = 0;
-    }
-    else if (u > 255)
-    {
-        u = 255;
-    }
-    return u;
-}
+
+
 
 /*static volatile int flag_joystick = 0;
 static taskDescriptor td1;
@@ -95,12 +71,13 @@ int main(void)
     lcd_init();
     motorFrequency_init();
     timer5_start();
-    pid_controller_init(1, 0, 0);
+    pidsettings pid;
+    pid_controller_init(50, 100, 1, &pid);
     sei();
     while (1)
     {
-        fprintf(uartout, "Motor freq rpm recent\n%d\n", (motorFrequency_getRecent()) * 60);
-        pwm_setDutyCycle(pid_controller());
-        _delay_ms(100);
+        fprintf(uartout, "Motor freq rpm\n%d\n", ((motorFrequency_getMedian() * 60)/6));
+        pwm_setDutyCycle(pid_controller(3000,&pid));//target frequency should be in rpm
+        _delay_ms(10);
     }
 }

@@ -7,6 +7,7 @@
 
 /**
  * Initializes timer0 to fast pwm mode by setting WGM02-00 to 3
+ * inverted mode
  * using processor clock
  */
 void pwm_init();

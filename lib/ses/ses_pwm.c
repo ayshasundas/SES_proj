@@ -13,6 +13,7 @@ void pwm_init(void)
 {   
     //Enabling timer0
     //Fast Pwm mode, setting WGM02-00 to 3 (top value defined as 0xFF)
+    //inverted mode
     //disabled pre-scalar
     //Receiving pulse at pin OC0B
 
