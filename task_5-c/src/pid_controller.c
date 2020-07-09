@@ -17,16 +17,17 @@ void pid_controller_init(int kp, int ki, int kd, pidsettings *ptr)
 uint8_t pid_controller(int F_tar,pidsettings * ptr)
 {   
     int u=0;
-    int F_curr=motorFrequency_getMedian();
+    int F_curr=((motorFrequency_getMedian()*60)/6);
     ptr->err = F_tar - F_curr;
-    int P = ptr->Kp * ptr->err;
-    ptr->it = (ptr->Ki * 1 * ptr->err) + (ptr->it);
+    int P = (ptr->Kp * ptr->err)/100;
+    ptr->it = ((ptr->Ki * 1 * ptr->err)/100) + (ptr->it);
     int D = ptr->Kd * (ptr->Perr - ptr->err);
     /*if ((u < 255) && (u >= 0)) 
     {
        ptr->it = ptr->it + ptr->err;
     }*/
      u = ((P ) + ptr->it + (D));
+     
      ptr->Perr = ptr->err;
     if (u < 0)
     {

@@ -13,7 +13,6 @@
 
 static volatile int flag_joystick = 0;
 static taskDescriptor td1;
-uint16_t motorSpeed_rpm=0;
 pidsettings pid;
 
 #define first_time_button_pressed             1 // showing that any button is pressed first time
@@ -38,8 +37,10 @@ void callback_for_joystick(void)
 
 void pid_control(void * ptr)
 {
-     fprintf(uartout, "Motor freq rpm\n%d\n", ((motorFrequency_getMedian() * 60)/6));
-    pwm_setDutyCycle(pid_controller(50,&pid));//target frequency should be in rpm
+     
+    pwm_setDutyCycle(pid_controller(3000,&pid));//target frequency should be in rpm
+    fprintf(uartout,"u= %d\n",pid_controller(3000,&pid));
+    fprintf(uartout, "Motor freq rpm\n%d\n", ((motorFrequency_getMedian()*60)/6));
 
 }
 
@@ -49,7 +50,7 @@ int main(void)
     uart_init(57600);
     //Initializing task_1 parameters 
     td1.period = 1000;//1sec
-    td1.expire = td1.period;
+    td1.expire = td1.period ;
     td1.param = NULL;
     td1.task = pid_control;
 
@@ -63,7 +64,7 @@ int main(void)
     timer1_start();// for button check state func
     motorFrequency_init();
     scheduler_init();
-    pid_controller_init(1, 0, 0, &pid);
+    pid_controller_init(1, 1, 0, &pid);
     timer5_start();
     sei();
     scheduler_run();

@@ -1,6 +1,7 @@
 /* INCLUDES ******************************************************************/
 #include "ses_motorFrequency.h"
 #include "ses_led.h"
+#include "ses_uart.h"
 #include <avr/io.h>
 #include "util/atomic.h"
 
@@ -87,7 +88,7 @@ void timer5_start()
 void Spikes_Counter(void)
 {
     // Counts number of spikes for 10ms interval and stores them to circular buffer
-
+     //uart_init(57600);
     static uint16_t counter = 0;
     counter++;
 
@@ -100,7 +101,9 @@ void Spikes_Counter(void)
     {
         static int i = 0;
         num_spikes_in_10msec = counter_spikes - num_spikes_ini;// for calculating number of spikes for 10ms interval
+        
         array[i] = num_spikes_in_10msec;
+        //fprintf(uartout, "array %d\n",array[i]);
 
         if (i == N - 1)
         {
