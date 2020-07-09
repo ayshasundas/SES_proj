@@ -24,7 +24,7 @@ void callback_for_joystick(void)
     flag_joystick++;
     if (flag_joystick == first_time_button_pressed)
     {
-        pwm_setDutyCycle(90);
+        pwm_setDutyCycle(0);
     }
     else if (flag_joystick == second_time_button_pressed)
     {

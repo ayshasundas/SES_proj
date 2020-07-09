@@ -20,13 +20,13 @@ uint8_t pid_controller(int F_tar,pidsettings * ptr)
     int F_curr=((motorFrequency_getMedian()*60)/6);
     ptr->err = F_tar - F_curr;
     int P = ptr->Kp * ptr->err;
-    ptr->it = (ptr->Ki * 1 * ptr->err) + (ptr->it * 100);
-    int D = ptr->Kd * (ptr->Perr - ptr->err) * 100;
+    ptr->it = (ptr->Ki * 1 * ptr->err) + (ptr->it);
+    int D = ptr->Kd * (ptr->Perr - ptr->err);
     /*if ((u < 255) && (u >= 0)) 
     {
        ptr->it = ptr->it + ptr->err;
     }*/
-     u = ((P * 100) + ptr->it + (D * 100)) / 100;
+     u = ((P ) + ptr->it + (D));
      ptr->Perr = ptr->err;
     if (u < 0)
     {
