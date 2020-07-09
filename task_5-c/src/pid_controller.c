@@ -17,7 +17,7 @@ void pid_controller_init(int kp, int ki, int kd, pidsettings *ptr)
 uint8_t pid_controller(int F_tar,pidsettings * ptr)
 {   
     int u=0;
-    int F_curr=((motorFrequency_getMedian()*60)/6);
+    int F_curr=motorFrequency_getMedian();
     ptr->err = F_tar - F_curr;
     int P = ptr->Kp * ptr->err;
     ptr->it = (ptr->Ki * 1 * ptr->err) + (ptr->it);

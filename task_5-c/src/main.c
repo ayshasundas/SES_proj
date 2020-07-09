@@ -39,7 +39,7 @@ void callback_for_joystick(void)
 void pid_control(void * ptr)
 {
      fprintf(uartout, "Motor freq rpm\n%d\n", ((motorFrequency_getMedian() * 60)/6));
-    pwm_setDutyCycle(pid_controller(3000,&pid));//target frequency should be in rpm
+    pwm_setDutyCycle(pid_controller(50,&pid));//target frequency should be in rpm
 
 }
 
