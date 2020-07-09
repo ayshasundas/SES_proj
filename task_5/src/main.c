@@ -13,7 +13,8 @@ static taskDescriptor td1;
 
 #define first_time_button_pressed  1 // showing that any button is pressed first time
 #define second_time_button_pressed 2 // showing that any button is pressed second time
-
+#define Value_for_rpm              60
+#define For_One_revoltion          6
 
 /************************************* Callback for joystick Button *****************************/
 
@@ -23,7 +24,7 @@ void callback_for_joystick(void)
     flag_joystick++;
     if (flag_joystick == first_time_button_pressed)
     {
-        pwm_setDutyCycle(0);
+        pwm_setDutyCycle(90);
     }
     else if (flag_joystick == second_time_button_pressed)
     {
@@ -49,12 +50,12 @@ void Motor_freq_rpm(void *ptr)
         led_greenOff();
     }
 
-    fprintf(lcdout, "Speed_rpm_recent\n%d\n", ((motorFrequency_getRecent() * 60)/6));
-    fprintf(lcdout, "Speed_rpm_median\n%d\n", ((motorFrequency_getMedian() * 60)/6));
+    fprintf(lcdout, "Speed_rpm_recent\n%d\n", ((motorFrequency_getRecent() * Value_for_rpm)/For_One_revoltion ));
+    fprintf(lcdout, "Speed_rpm_median\n%d\n", ((motorFrequency_getMedian() * Value_for_rpm)/For_One_revoltion ));
 
     //For debugging purpose, due to low lcd screen visibility
-    fprintf(uartout, "Motor freq rpm recent\n%d\n", ((motorFrequency_getRecent()* 60)/6));
-    fprintf(uartout, "Motor freq in rpm median\n%d\n", ((motorFrequency_getMedian()* 60)/6));
+    fprintf(uartout, "Motor freq rpm recent\n%d\n", ((motorFrequency_getRecent()* Value_for_rpm)/For_One_revoltion ));
+    fprintf(uartout, "Motor freq in rpm median\n%d\n", ((motorFrequency_getMedian()* Value_for_rpm)/For_One_revoltion));
 }
 
 /****************************** Main function **************************************************/
