@@ -9,6 +9,7 @@
 
 /**type of function pointer for tasks */
 typedef void (*task_t)(void*);
+typedef uint32_t systemTime_t;
 
 /** Task structure to schedule tasks
  */
@@ -58,5 +59,11 @@ bool scheduler_add(taskDescriptor * td);
  * @param td	pointer to task descriptor to remove
  * */
 void scheduler_remove(taskDescriptor * td);
+
+
+systemTime_t scheduler_getTime();
+
+
+void scheduler_setTime(systemTime_t time);
 
 #endif /* SCHEDULER_H_ */

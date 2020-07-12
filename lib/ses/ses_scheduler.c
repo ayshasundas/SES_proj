@@ -8,6 +8,7 @@
 /** list of scheduled tasks */
 static taskDescriptor* taskList = NULL;
 taskDescriptor *task_run;
+systemTime_t curr_time=0;
 
 /*FUNCTION DEFINITION *************************************************/
 static void scheduler_update(void) 
@@ -25,6 +26,11 @@ static void scheduler_update(void)
 		}
 		
 		n=n->next;
+	}
+	curr_time++;
+	if(curr_time==86400000)
+	{
+		curr_time=0;
 	}
 }
 
@@ -150,4 +156,16 @@ void scheduler_remove(taskDescriptor * toRemove)
 		}
 		n=NULL;
 	}	
+}
+
+
+systemTime_t scheduler_getTime()
+{
+	return curr_time;
+}
+
+
+void scheduler_setTime(systemTime_t time)
+{
+	curr_time = time;
 }
