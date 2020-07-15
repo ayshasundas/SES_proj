@@ -13,9 +13,7 @@
 #define Min_Conversion 60000
 #define Sec_Conversion 1000
 
-static taskDescriptor td4;
-time_t *ais;
-/*
+
 #define TRANSITION(newState) (fsm->state = newState, RET_TRANSITION)
 
 int setting_alarm = 0;
@@ -25,7 +23,7 @@ time_t Alarm_time, Sys_time;
 
 fsmReturnStatus set_hours(Fsm *fsm, const Event *event);
 fsmReturnStatus normal_mode(Fsm *fsm, const Event *event);
-*/
+
 
 void Milli_to_Time(systemTime_t cT, time_t *t)
 {
@@ -46,7 +44,7 @@ systemTime_t Time_to_Milli(time_t t)
 {
     return ((t.hour * Hour_Conversion) + (t.minute * Min_Conversion));
 }
-/*
+
 fsmReturnStatus Alarm_beep(Fsm *fsm, const Event *event)
 {
     switch (event->signal)
@@ -225,22 +223,22 @@ void callback_for_rotary()
 {
     scheduler_add(&td2);
 }
-*/
+
 void curr_time_display(void *param)
 {
     lcd_clear();
     lcd_setCursor(0, 0);
-    //time_t *fsm = (time_t *)param;
-    Milli_to_Time(scheduler_getTime(), ais);
+    Fsm *fsm = (Fsm *)param;
+    Milli_to_Time(scheduler_getTime(), &fsm->timeSet);
 
-    fprintf(lcdout, "%d:%d:%d\n", ais->hour, ais->minute, ais->second);
+    fprintf(lcdout, "%d:%d:%d\n", fsm->timeSet.hour, fsm->timeSet.minute, fsm->timeSet.second);
 }
 
-/*
+
 void Alarm_ON(void *param)
 {
     Fsm *fsm = (Fsm *)param;
-    Milli_to_Time(scheduler_getTime(), fsm->timeSet);
+    Milli_to_Time(scheduler_getTime(), &fsm->timeSet);
     if (Alarm_time.hour == fsm->timeSet.hour && Alarm_time.minute == fsm->timeSet.minute)
     {
         Event e = {.signal = ALARM_TIME_MATCHED};
@@ -252,13 +250,13 @@ void Led_Toggle(void *ptr)
 {
     led_redToggle();
 }
-*/
+
 int main()
 {
     uart_init(57600);
-    //clock.isAlarmEnabled = 0;
+    clock.isAlarmEnabled = 0;
     lcd_init();
-    /*button_setJoystickButtonCallback(callback_for_joystick);
+    button_setJoystickButtonCallback(callback_for_joystick);
     button_setRotaryButtonCallback(callback_for_rotary);
     led_greenInit();
     led_redInit();
@@ -280,19 +278,18 @@ int main()
     td3.expire = 0;
     td3.execute = 1;
     td3.param = &clock;
-    td3.task = joystickPressedDispatch;*/
+    td3.task = joystickPressedDispatch;
 
     //fprintf(uartout,"cT %" PRIu32 "\n",Time_to_Milli(a));
 
     td4.period = 1000;
     td4.expire = 0;
     td4.execute = 1;
-    td4.param = NULL;
+    td4.param = &clock;
     td4.task = curr_time_display;
 
-    uint32_t bb = 62400000;
-    scheduler_setTime(bb);
-    /*td5.period = 60000;
+
+    td5.period = 1000;
     td5.expire = td5.period;
     td5.param = &clock;
     td5.task = Alarm_ON;
@@ -301,13 +298,13 @@ int main()
     td6.expire = 0;
     td6.execute = 1;
     td6.param = NULL;
-    td6.task = Led_Toggle;*/
+    td6.task = Led_Toggle;
 
-    scheduler_add(&td4);
+    scheduler_add(&td1);
 
     scheduler_init();
 
     sei();
-    //fsm_init(&clock, clock_init);
+    fsm_init(&clock, clock_init);
     scheduler_run();
 }
