@@ -4,6 +4,7 @@
 /*INCLUDES *******************************************************************/
 #include "ses_common.h"
 
+
 /* TYPES ********************************************************************/
 typedef struct fsm_s Fsm;        //< typedef for alarm clock state machine
 typedef struct event_s Event;    //< event type for alarm clock fsm
@@ -27,7 +28,8 @@ enum
     ENTRY,
     EXIT,
     JOYSTICK_PRESSED,
-    ROTARY_PRESSED
+    ROTARY_PRESSED,
+    ALARM_TIME_MATCHED
 };
 
 typedef struct time_t
@@ -53,21 +55,23 @@ struct event_s
 
 /* dispatches events to state machine, called in application*/
 
-inline void fsm_dispatch(Fsm *fsm, const Event *event)
+inline static void fsm_dispatch(Fsm *fsm, const Event *event)
 {
 
-    Event entryEvent = {.signal = ENTRY};
-    Event exitEvent = {.signal = EXIT};
+    static Event entryEvent = {.signal = ENTRY};
+    static Event exitEvent = {.signal = EXIT};
     State s = fsm->state;
     fsmReturnStatus r = fsm->state(fsm, event);
     if (r == RET_TRANSITION)
     {
         s(fsm, &exitEvent);           //< call exit action of last state
-        fsm->state(fsm, &entryEvent); //< call entry action of new state
+        r=fsm->state(fsm, &entryEvent); //< call entry action of new state
     }
+    
+}
 
     /* sets and calls initial state of state machine */
-    inline void fsm_init(Fsm * fsm, State init)
+    inline static void fsm_init(Fsm * fsm, State init)
     {
         //... other initialization
         Event entryEvent = {.signal = ENTRY};
