@@ -29,7 +29,8 @@ enum
     EXIT,
     JOYSTICK_PRESSED,
     ROTARY_PRESSED,
-    ALARM_TIME_MATCHED
+    ALARM_TIME_MATCHED,
+    TIME_5SEC_EXPIRED
 };
 
 typedef struct time_t

@@ -49,13 +49,11 @@ fsmReturnStatus Alarm_beep(Fsm *fsm, const Event *event)
     {
     case ENTRY:
         scheduler_add(&td6);
-        scheduler_add(&td7);
         return RET_HANDLED;
     case JOYSTICK_PRESSED:
     case ROTARY_PRESSED:
+    case TIME_5SEC_EXPIRED:
         scheduler_remove(&td6);
-        if(td7.expire>0){
-        scheduler_remove(&td7);}
         led_redOff();
         return TRANSITION(normal_mode);
 
@@ -78,12 +76,14 @@ fsmReturnStatus normal_mode(Fsm *fsm, const Event *event)
         fsm->isAlarmEnabled = !(fsm->isAlarmEnabled);
         if (fsm->isAlarmEnabled)
         {
+            led_yellowOn();
             lcd_init();
             lcd_clear();
             fprintf(lcdout, "Alarm enabled\n");
         }
         else
         {
+            led_yellowOff();
             lcd_init();
             lcd_clear();
             fprintf(lcdout, "Alarm disabled\n");
@@ -116,9 +116,13 @@ fsmReturnStatus set_minutes(Fsm *fsm, const Event *event)
         return RET_HANDLED;
     case ROTARY_PRESSED:
         mm++;
+         if(mm==60)
+        {
+            mm=0;
+        }
         lcd_init();
         lcd_clear();
-        fprintf(lcdout, "%d:%d\n", Sys_time.hour, mm);
+        fprintf(lcdout, "%02d:%02d\n", Sys_time.hour, mm);
         return RET_HANDLED;
     case JOYSTICK_PRESSED:
         return TRANSITION(normal_mode);
@@ -129,6 +133,7 @@ fsmReturnStatus set_minutes(Fsm *fsm, const Event *event)
             Sys_time.minute = mm;
             scheduler_setTime(Time_to_Milli(Sys_time)); //Updating System time
             //starts the clock???????
+            scheduler_add(&td7);
         }
         else
         {
@@ -159,9 +164,13 @@ fsmReturnStatus set_hours(Fsm *fsm, const Event *event)
         return RET_HANDLED;
     case ROTARY_PRESSED:
         hh++;
+        if(hh==24)
+        {
+            hh=0;
+        }
         lcd_init();
         lcd_clear();
-        fprintf(lcdout, "%d:00\n", hh);
+        fprintf(lcdout, "%02d:00\n", hh);
         return RET_HANDLED;
     case JOYSTICK_PRESSED:
         return TRANSITION(set_minutes);
@@ -233,7 +242,7 @@ void curr_time_display(void *param)
     Fsm *fsm = (Fsm *)param;
     Milli_to_Time(scheduler_getTime(), &fsm->timeSet);
 
-    fprintf(lcdout, "%d:%d:%d\n", fsm->timeSet.hour, fsm->timeSet.minute, fsm->timeSet.second);
+    fprintf(lcdout, "%02d:%02d:%02d\n", fsm->timeSet.hour, fsm->timeSet.minute, fsm->timeSet.second);
 }
 
 void Alarm_ON(void *param)
@@ -247,17 +256,27 @@ void Alarm_ON(void *param)
     }
 }
 
-void Led_Toggle(void *ptr)
+void Red_Led_Toggle(void *ptr)
 {
+    Fsm *fsm = (Fsm *)ptr;
+    static int time_5sec=0;
     led_redToggle();
+    time_5sec++;
+
+    if(time_5sec == 20)
+    {
+        time_5sec=0;
+        Event e = {.signal = TIME_5SEC_EXPIRED};
+        fsm_dispatch(fsm, &e);
+        
+    }
 }
 
-void Red_led_off(void *ptr)
+void Green_Led_Toggle(void *ptr)
 {
-     Fsm *fsm = (Fsm *)ptr;
-    Event e = {.signal = JOYSTICK_PRESSED};
-    fsm_dispatch(fsm, &e);
+    led_greenToggle();
 }
+
 
 int main()
 {
@@ -304,13 +323,15 @@ int main()
     td6.period = 250;
     td6.expire = 0;
     td6.execute = 1;
-    td6.param = NULL;
-    td6.task = Led_Toggle;
+    td6.param = &clock;
+    td6.task = Red_Led_Toggle;
 
-    td7.period = 0;
-    td7.expire = 5000;
-    td7.param = &clock;
-    td7.task = Red_led_off;
+    td7.period = 1000;
+    td7.expire = td7.period;
+    td7.param = NULL;
+    td7.task = Green_Led_Toggle;
+
+
 
     scheduler_add(&td1);
 
