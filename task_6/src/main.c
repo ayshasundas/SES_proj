@@ -53,11 +53,10 @@ fsmReturnStatus Alarm_beep(Fsm *fsm, const Event *event)
     case JOYSTICK_PRESSED:
     case ROTARY_PRESSED:
     case TIME_5SEC_EXPIRED:
+        return TRANSITION(normal_mode);
+    case EXIT:
         scheduler_remove(&td6);
         led_redOff();
-        return TRANSITION(normal_mode);
-
-    case EXIT:
         fsm->isAlarmEnabled=0;
         led_yellowOff();
         return RET_HANDLED;
@@ -94,12 +93,21 @@ fsmReturnStatus normal_mode(Fsm *fsm, const Event *event)
         {
             scheduler_remove(&td5);//is remove func correct?
         }
-        setting_alarm = 1;
+       // setting_alarm = 1;
         return TRANSITION(set_hours);
     case ALARM_TIME_MATCHED:
         scheduler_remove(&td5);
         return TRANSITION(Alarm_beep);
     case EXIT:
+        if(!setting_alarm)
+        {
+            setting_alarm=1;
+        }
+        else
+        {
+            setting_alarm=0;
+        }
+        
         return RET_HANDLED;
     default:
         return RET_IGNORED;
