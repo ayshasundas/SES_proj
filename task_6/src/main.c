@@ -58,6 +58,8 @@ fsmReturnStatus Alarm_beep(Fsm *fsm, const Event *event)
         return TRANSITION(normal_mode);
 
     case EXIT:
+        fsm->isAlarmEnabled=0;
+        led_yellowOff();
         return RET_HANDLED;
     default:
         return RET_IGNORED;
@@ -77,21 +79,21 @@ fsmReturnStatus normal_mode(Fsm *fsm, const Event *event)
         if (fsm->isAlarmEnabled)
         {
             led_yellowOn();
-            lcd_init();
-            lcd_clear();
-            fprintf(lcdout, "Alarm enabled\n");
+            scheduler_add(&td5);
         }
         else
         {
             led_yellowOff();
-            lcd_init();
-            lcd_clear();
-            fprintf(lcdout, "Alarm disabled\n");
+            scheduler_remove(&td5);
         }
 
         return RET_HANDLED;
     case JOYSTICK_PRESSED:
         scheduler_remove(&td4);
+        if (fsm->isAlarmEnabled)
+        {
+            scheduler_remove(&td5);//is remove func correct?
+        }
         setting_alarm = 1;
         return TRANSITION(set_hours);
     case ALARM_TIME_MATCHED:
@@ -115,11 +117,7 @@ fsmReturnStatus set_minutes(Fsm *fsm, const Event *event)
         fprintf(lcdout, "Setting Min:\n");
         return RET_HANDLED;
     case ROTARY_PRESSED:
-        mm++;
-         if(mm==60)
-        {
-            mm=0;
-        }
+        mm = (mm + 1) % 60;
         lcd_init();
         lcd_clear();
         fprintf(lcdout, "%02d:%02d\n", Sys_time.hour, mm);
@@ -139,7 +137,7 @@ fsmReturnStatus set_minutes(Fsm *fsm, const Event *event)
         {
 
             Alarm_time.minute = mm;
-            if (fsm->isAlarmEnabled)
+            if(fsm->isAlarmEnabled)
             {
                 scheduler_add(&td5);
             }
@@ -163,11 +161,7 @@ fsmReturnStatus set_hours(Fsm *fsm, const Event *event)
         fprintf(lcdout, "Setting Hrs:\n");
         return RET_HANDLED;
     case ROTARY_PRESSED:
-        hh++;
-        if(hh==24)
-        {
-            hh=0;
-        }
+        hh = (hh + 1) % 24;
         lcd_init();
         lcd_clear();
         fprintf(lcdout, "%02d:00\n", hh);
@@ -259,16 +253,15 @@ void Alarm_ON(void *param)
 void Red_Led_Toggle(void *ptr)
 {
     Fsm *fsm = (Fsm *)ptr;
-    static int time_5sec=0;
+    static int time_5sec = 0;
     led_redToggle();
     time_5sec++;
 
-    if(time_5sec == 20)
+    if (time_5sec == 20)
     {
-        time_5sec=0;
+        time_5sec = 0;
         Event e = {.signal = TIME_5SEC_EXPIRED};
         fsm_dispatch(fsm, &e);
-        
     }
 }
 
@@ -277,11 +270,12 @@ void Green_Led_Toggle(void *ptr)
     led_greenToggle();
 }
 
-
 int main()
 {
     uart_init(57600);
     clock.isAlarmEnabled = 0;
+    Alarm_time.hour = 0;
+    Alarm_time.minute = 0;
     lcd_init();
     button_setJoystickButtonCallback(callback_for_joystick);
     button_setRotaryButtonCallback(callback_for_rotary);
@@ -330,8 +324,6 @@ int main()
     td7.expire = td7.period;
     td7.param = NULL;
     td7.task = Green_Led_Toggle;
-
-
 
     scheduler_add(&td1);
 
