@@ -114,7 +114,14 @@ fsmReturnStatus set_minutes(Fsm *fsm, const Event *event)
     case ENTRY:
         lcd_init();
         lcd_clear();
-        fprintf(lcdout, "Setting Min:\n");
+         if(!setting_alarm)
+        {
+            fprintf(lcdout, "Setting Clock Min:\n");
+        }
+        else
+        {
+            fprintf(lcdout, "Setting Alarm Min:\n");
+        }
         return RET_HANDLED;
     case ROTARY_PRESSED:
         mm = (mm + 1) % 60;
@@ -158,7 +165,16 @@ fsmReturnStatus set_hours(Fsm *fsm, const Event *event)
     case ENTRY:
         lcd_init();
         lcd_clear();
-        fprintf(lcdout, "Setting Hrs:\n");
+        
+        if(!setting_alarm)
+        {
+            fprintf(lcdout, "Setting clock Hrs:\n");
+        }
+        else
+        {
+            fprintf(lcdout, "Setting Alarm Hrs:\n");
+        }
+        
         return RET_HANDLED;
     case ROTARY_PRESSED:
         hh = (hh + 1) % 24;
@@ -169,6 +185,7 @@ fsmReturnStatus set_hours(Fsm *fsm, const Event *event)
     case JOYSTICK_PRESSED:
         return TRANSITION(set_minutes);
     case EXIT:
+        
         if (!setting_alarm)
         {
             Sys_time.hour = hh;
@@ -243,7 +260,7 @@ void Alarm_ON(void *param)
 {
     Fsm *fsm = (Fsm *)param;
     Milli_to_Time(scheduler_getTime(), &fsm->timeSet);
-    if (Alarm_time.hour == fsm->timeSet.hour && Alarm_time.minute == fsm->timeSet.minute)
+    if (Alarm_time.hour == fsm->timeSet.hour && Alarm_time.minute == fsm->timeSet.minute && fsm->timeSet.second==0)
     {
         Event e = {.signal = ALARM_TIME_MATCHED};
         fsm_dispatch(fsm, &e);
