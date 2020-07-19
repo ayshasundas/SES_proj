@@ -4,15 +4,13 @@
 /*INCLUDES *******************************************************************/
 #include "ses_common.h"
 
-
 /* TYPES ********************************************************************/
 typedef struct fsm_s Fsm;        //< typedef for alarm clock state machine
 typedef struct event_s Event;    //< event type for alarm clock fsm
-typedef uint8_t fsmReturnStatus; //< typedef to be used with above enum
-/* a state is represented by a function pointer, called for
-* each transition emanating in this state */
+typedef uint8_t fsmReturnStatus; //< typedef to be used with enum
+
+/** typedef for state event handler functions */
 typedef fsmReturnStatus (*State)(Fsm *, const Event *);
-/* base type for state machine */
 
 /** return values */
 enum
@@ -34,7 +32,7 @@ enum
 };
 
 typedef struct time_t
-{
+{ //for keeping the time value in user friendly format
     uint8_t hour;
     uint8_t minute;
     uint8_t second;
@@ -55,29 +53,26 @@ struct event_s
 };
 
 /* dispatches events to state machine, called in application*/
-
 inline static void fsm_dispatch(Fsm *fsm, const Event *event)
 {
-
     static Event entryEvent = {.signal = ENTRY};
     static Event exitEvent = {.signal = EXIT};
     State s = fsm->state;
     fsmReturnStatus r = fsm->state(fsm, event);
     if (r == RET_TRANSITION)
     {
-        s(fsm, &exitEvent);           //< call exit action of last state
-        r=fsm->state(fsm, &entryEvent); //< call entry action of new state
+        s(fsm, &exitEvent);               //< call exit action of last state
+        r = fsm->state(fsm, &entryEvent); //< call entry action of new state
     }
-    
 }
 
-    /* sets and calls initial state of state machine */
-    inline static void fsm_init(Fsm * fsm, State init)
-    {
-        //... other initialization
-        Event entryEvent = {.signal = ENTRY};
-        fsm->state = init;
-        fsm->state(fsm, &entryEvent);
-    }
+/* sets and calls initial state of state machine */
+inline static void fsm_init(Fsm *fsm, State init)
+{
+    fsm->isAlarmEnabled = 0;//initially alarm is disabled
+    Event entryEvent = {.signal = ENTRY};
+    fsm->state = init;
+    fsm->state(fsm, &entryEvent);
+}
 
 #endif /* FSM_H_ */

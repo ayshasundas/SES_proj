@@ -4,6 +4,8 @@
 #include "util/atomic.h"
 #include "ses_uart.h"
 
+#define overflow_value_millisec 	86400000
+
 /* PRIVATE VARIABLES **************************************************/
 /** list of scheduled tasks */
 static taskDescriptor* taskList = NULL;
@@ -27,11 +29,8 @@ static void scheduler_update(void)
 		
 		n=n->next;
 	}
-	curr_time++;
-	if(curr_time==86400000)
-	{
-		curr_time=0;
-	}
+	curr_time=(curr_time+1)%overflow_value_millisec;
+	
 }
 
 void scheduler_init() {

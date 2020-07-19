@@ -8,23 +8,28 @@
 #include "Fsm.h"
 #include <inttypes.h>
 #include <stdint.h>
-
-#define Hour_Conversion 3600000
-#define Min_Conversion 60000
-#define Sec_Conversion 1000
+// Definitions
+#define Hour_Conversion     3600000
+#define Min_Conversion      60000
+#define Sec_Conversion      1000
+#define For_Overflow_min    60
+#define For_Overflow_hr     24
+#define For_5sec            20
 
 #define TRANSITION(newState) (fsm->state = newState, RET_TRANSITION)
 
 int setting_alarm = 0;
 static taskDescriptor td1, td2, td3, td4, td5, td6, td7;
-Fsm clock;
 time_t Alarm_time, Sys_time;
+Fsm clock;
 
 fsmReturnStatus set_hours(Fsm *fsm, const Event *event);
 fsmReturnStatus normal_mode(Fsm *fsm, const Event *event);
 
+/********************************************* Milli_to_Time Func *******************************************/
 void Milli_to_Time(systemTime_t cT, time_t *t)
 {
+    //Takes time value in milli seconds and stores the converted value in a structure time_t
     uint32_t temp = ((uint32_t)cT / (uint32_t)Hour_Conversion);
 
     t->hour = (uint8_t)temp;
@@ -38,26 +43,29 @@ void Milli_to_Time(systemTime_t cT, time_t *t)
     t->milli = (uint8_t)temp;
 }
 
+/********************************************* Time_to_Milli Func *******************************************/
 systemTime_t Time_to_Milli(time_t t)
-{
+{   
+    //takes time value in standard format and returns it in milliseconds
     return ((t.hour * Hour_Conversion) + (t.minute * Min_Conversion));
 }
 
+/********************************************* Alarm_beep State *******************************************/
 fsmReturnStatus Alarm_beep(Fsm *fsm, const Event *event)
 {
     switch (event->signal)
     {
     case ENTRY:
-        scheduler_add(&td6);
+        scheduler_add(&td6);//Red_Led_Toggle task
         return RET_HANDLED;
     case JOYSTICK_PRESSED:
     case ROTARY_PRESSED:
     case TIME_5SEC_EXPIRED:
         return TRANSITION(normal_mode);
     case EXIT:
-        scheduler_remove(&td6);
+        scheduler_remove(&td6);//Red_Led_Toggle task
         led_redOff();
-        fsm->isAlarmEnabled=0;
+        fsm->isAlarmEnabled = 0;
         led_yellowOff();
         return RET_HANDLED;
     default:
@@ -65,55 +73,56 @@ fsmReturnStatus Alarm_beep(Fsm *fsm, const Event *event)
     }
 }
 
+/********************************************* normal_mode State *******************************************/
 fsmReturnStatus normal_mode(Fsm *fsm, const Event *event)
 {
     switch (event->signal)
     {
 
     case ENTRY:
-        scheduler_add(&td4);
+        scheduler_add(&td4);//curr_time_display task
         return RET_HANDLED;
     case ROTARY_PRESSED:
         fsm->isAlarmEnabled = !(fsm->isAlarmEnabled);
         if (fsm->isAlarmEnabled)
         {
             led_yellowOn();
-            scheduler_add(&td5);
+            scheduler_add(&td5);// Alarm_ON task
         }
         else
         {
             led_yellowOff();
-            scheduler_remove(&td5);
+            scheduler_remove(&td5);// Alarm_ON task
         }
 
         return RET_HANDLED;
     case JOYSTICK_PRESSED:
-        scheduler_remove(&td4);
+        scheduler_remove(&td4);//curr_time_display task
         if (fsm->isAlarmEnabled)
         {
-            scheduler_remove(&td5);//is remove func correct?
+            scheduler_remove(&td5);// Alarm_ON task
         }
-       // setting_alarm = 1;
         return TRANSITION(set_hours);
     case ALARM_TIME_MATCHED:
-        scheduler_remove(&td5);
+        scheduler_remove(&td5);// Alarm_ON task
         return TRANSITION(Alarm_beep);
     case EXIT:
-        if(!setting_alarm)
+        if (!setting_alarm)
         {
-            setting_alarm=1;
+            setting_alarm = 1;
         }
         else
         {
-            setting_alarm=0;
+            setting_alarm = 0;
         }
-        
+
         return RET_HANDLED;
     default:
         return RET_IGNORED;
     }
 }
 
+/********************************************* set_minutes State *******************************************/
 fsmReturnStatus set_minutes(Fsm *fsm, const Event *event)
 {
     static uint8_t mm = 0;
@@ -122,7 +131,7 @@ fsmReturnStatus set_minutes(Fsm *fsm, const Event *event)
     case ENTRY:
         lcd_init();
         lcd_clear();
-         if(!setting_alarm)
+        if (!setting_alarm)
         {
             fprintf(lcdout, "Setting Clock Min:\n");
         }
@@ -132,7 +141,7 @@ fsmReturnStatus set_minutes(Fsm *fsm, const Event *event)
         }
         return RET_HANDLED;
     case ROTARY_PRESSED:
-        mm = (mm + 1) % 60;
+        mm = (mm + 1) % For_Overflow_min;
         lcd_init();
         lcd_clear();
         fprintf(lcdout, "%02d:%02d\n", Sys_time.hour, mm);
@@ -145,16 +154,15 @@ fsmReturnStatus set_minutes(Fsm *fsm, const Event *event)
         {
             Sys_time.minute = mm;
             scheduler_setTime(Time_to_Milli(Sys_time)); //Updating System time
-            //starts the clock???????
-            scheduler_add(&td7);
+            scheduler_add(&td7);//green_led_toggle task
         }
         else
         {
 
             Alarm_time.minute = mm;
-            if(fsm->isAlarmEnabled)
+            if (fsm->isAlarmEnabled)
             {
-                scheduler_add(&td5);
+                scheduler_add(&td5);//Alarm_ON task
             }
         }
 
@@ -165,6 +173,7 @@ fsmReturnStatus set_minutes(Fsm *fsm, const Event *event)
     }
 }
 
+/********************************************* set_hours State *******************************************/
 fsmReturnStatus set_hours(Fsm *fsm, const Event *event)
 {
     static uint8_t hh = 0;
@@ -173,8 +182,8 @@ fsmReturnStatus set_hours(Fsm *fsm, const Event *event)
     case ENTRY:
         lcd_init();
         lcd_clear();
-        
-        if(!setting_alarm)
+
+        if (!setting_alarm)
         {
             fprintf(lcdout, "Setting clock Hrs:\n");
         }
@@ -182,10 +191,10 @@ fsmReturnStatus set_hours(Fsm *fsm, const Event *event)
         {
             fprintf(lcdout, "Setting Alarm Hrs:\n");
         }
-        
+
         return RET_HANDLED;
     case ROTARY_PRESSED:
-        hh = (hh + 1) % 24;
+        hh = (hh + 1) % For_Overflow_hr;
         lcd_init();
         lcd_clear();
         fprintf(lcdout, "%02d:00\n", hh);
@@ -193,7 +202,7 @@ fsmReturnStatus set_hours(Fsm *fsm, const Event *event)
     case JOYSTICK_PRESSED:
         return TRANSITION(set_minutes);
     case EXIT:
-        
+
         if (!setting_alarm)
         {
             Sys_time.hour = hh;
@@ -210,6 +219,7 @@ fsmReturnStatus set_hours(Fsm *fsm, const Event *event)
     }
 }
 
+/********************************************* Clock_init State *******************************************/
 fsmReturnStatus clock_init(Fsm *fsm, const Event *event)
 {
     switch (event->signal)
@@ -224,6 +234,7 @@ fsmReturnStatus clock_init(Fsm *fsm, const Event *event)
     }
 }
 
+/********************************************* Joystick Pressed Dispatch Task *******************************************/
 static void joystickPressedDispatch(void *param)
 {
     Fsm *fsm = (Fsm *)param;
@@ -231,6 +242,7 @@ static void joystickPressedDispatch(void *param)
     fsm_dispatch(fsm, &e);
 }
 
+/********************************************* Rotary Pressed Dispatch Task *******************************************/
 static void rotaryPressedDispatch(void *param)
 {
     Fsm *fsm = (Fsm *)param;
@@ -238,6 +250,7 @@ static void rotaryPressedDispatch(void *param)
     fsm_dispatch(fsm, &e);
 }
 
+/********************************************* Button Check State Task *******************************************/
 void button_debouncing(void *ptr)
 { //Task for debouncing the buttons and calling their callbacks when a particular button is pressed, respectively
 
@@ -246,43 +259,47 @@ void button_debouncing(void *ptr)
 
 void callback_for_joystick()
 {
-    scheduler_add(&td3);
+    scheduler_add(&td3); // Add joystickPressedDispatch task
 }
 
 void callback_for_rotary()
 {
-    scheduler_add(&td2);
+    scheduler_add(&td2); //Add rotaryPressedDispatch task
 }
 
+/********************************************* Current time display Task *******************************************/
 void curr_time_display(void *param)
 {
     lcd_clear();
     lcd_setCursor(0, 0);
     Fsm *fsm = (Fsm *)param;
-    Milli_to_Time(scheduler_getTime(), &fsm->timeSet);
+    Milli_to_Time(scheduler_getTime(), &fsm->timeSet); //get the current time in millisec and convert it to user friendly format
 
     fprintf(lcdout, "%02d:%02d:%02d\n", fsm->timeSet.hour, fsm->timeSet.minute, fsm->timeSet.second);
 }
 
+/********************************************* Alarm On Task *******************************************/
 void Alarm_ON(void *param)
-{
+{ //It compares currenttime with pre-set alarm time every second and calls dispatch func on a match
     Fsm *fsm = (Fsm *)param;
     Milli_to_Time(scheduler_getTime(), &fsm->timeSet);
-    if (Alarm_time.hour == fsm->timeSet.hour && Alarm_time.minute == fsm->timeSet.minute && fsm->timeSet.second==0)
+    if (Alarm_time.hour == fsm->timeSet.hour && Alarm_time.minute == fsm->timeSet.minute && fsm->timeSet.second == 0)
     {
         Event e = {.signal = ALARM_TIME_MATCHED};
         fsm_dispatch(fsm, &e);
     }
 }
 
+/********************************************* Red_Led_Toggle Task *******************************************/
 void Red_Led_Toggle(void *ptr)
 {
+    //Toggles red led for 5sec if user has not pressed any button within that time.
     Fsm *fsm = (Fsm *)ptr;
     static int time_5sec = 0;
     led_redToggle();
     time_5sec++;
 
-    if (time_5sec == 20)
+    if (time_5sec == For_5sec)
     {
         time_5sec = 0;
         Event e = {.signal = TIME_5SEC_EXPIRED};
@@ -290,15 +307,17 @@ void Red_Led_Toggle(void *ptr)
     }
 }
 
+/********************************************* Green_Led_Toggle Task *******************************************/
 void Green_Led_Toggle(void *ptr)
 {
-    led_greenToggle();
+    led_greenToggle();//toggles synchronously with the counter of the seconds
 }
 
+/********************************************* Main *******************************************/
 int main()
 {
     uart_init(57600);
-    clock.isAlarmEnabled = 0;
+    //by default the alarm value is 00:00
     Alarm_time.hour = 0;
     Alarm_time.minute = 0;
     lcd_init();
@@ -325,8 +344,6 @@ int main()
     td3.execute = 1;
     td3.param = &clock;
     td3.task = joystickPressedDispatch;
-
-    //fprintf(uartout,"cT %" PRIu32 "\n",Time_to_Milli(a));
 
     td4.period = 1000;
     td4.expire = 0;

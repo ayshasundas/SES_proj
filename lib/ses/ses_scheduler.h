@@ -60,10 +60,21 @@ bool scheduler_add(taskDescriptor * td);
  * */
 void scheduler_remove(taskDescriptor * td);
 
+/**
+ * It returns the current time in milliseconds
+ *
+ *
+ * @return     current time of type systemTime_t(32-bit) in milliseconds
+ */
 
 systemTime_t scheduler_getTime();
 
-
+/**
+ * Sets the Clock start time according to user's set value
+ *
+ * @param time	32-bit value in milliseconds to be set as clock start time
+ *
+ */
 void scheduler_setTime(systemTime_t time);
 
 #endif /* SCHEDULER_H_ */
