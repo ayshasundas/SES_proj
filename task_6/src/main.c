@@ -102,11 +102,17 @@ fsmReturnStatus normal_mode(Fsm *fsm, const Event *event)
         {
             scheduler_remove(&td5);// Alarm_ON task
         }
+        setting_alarm = 1;
         return TRANSITION(set_hours);
     case ALARM_TIME_MATCHED:
         scheduler_remove(&td5);// Alarm_ON task
+        setting_alarm = 0;
         return TRANSITION(Alarm_beep);
     case EXIT:
+     
+     //We cannot toggle setting_alarm variable like this, this results in alternating Alarm and Clock setting modes
+     
+     /*
         if (!setting_alarm)
         {
             setting_alarm = 1;
@@ -115,6 +121,7 @@ fsmReturnStatus normal_mode(Fsm *fsm, const Event *event)
         {
             setting_alarm = 0;
         }
+    */
 
         return RET_HANDLED;
     default:
@@ -145,6 +152,7 @@ fsmReturnStatus set_minutes(Fsm *fsm, const Event *event)
         lcd_init();
         lcd_clear();
         fprintf(lcdout, "%02d:%02d\n", Sys_time.hour, mm);
+        fprintf(lcdout, "Setting Min:\n");
         return RET_HANDLED;
     case JOYSTICK_PRESSED:
         return TRANSITION(normal_mode);
@@ -185,11 +193,11 @@ fsmReturnStatus set_hours(Fsm *fsm, const Event *event)
 
         if (!setting_alarm)
         {
-            fprintf(lcdout, "Setting clock Hrs:\n");
+            fprintf(lcdout, "Setting Clock Hours:\n");
         }
         else
         {
-            fprintf(lcdout, "Setting Alarm Hrs:\n");
+            fprintf(lcdout, "Setting Alarm Hours:\n");
         }
 
         return RET_HANDLED;
@@ -198,6 +206,7 @@ fsmReturnStatus set_hours(Fsm *fsm, const Event *event)
         lcd_init();
         lcd_clear();
         fprintf(lcdout, "%02d:00\n", hh);
+        fprintf(lcdout, "Setting Hours:\n");
         return RET_HANDLED;
     case JOYSTICK_PRESSED:
         return TRANSITION(set_minutes);

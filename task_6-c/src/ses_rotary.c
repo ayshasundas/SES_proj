@@ -13,14 +13,17 @@
 #define B_ROTARY_PORT PORTG //PG2
 #define B_ROTARY_PIN 2
 
-static volatile int counter = 0;
+#define BUTTON_NUM_DEBOUNCE_CHECKS 5
 
-    //#define BUTTON_NUM_DEBOUNCE_CHECKS      5 // Number of times a button bounces, after which we consider it as a single button press
-    //#define BUTTON_DEBOUNCE_POS_JOYSTICK    0x01
-    //#define BUTTON_DEBOUNCE_POS_ROTARY      0x02
+static volatile int counter = 0;
+static volatile int flag=0;
+
+//#define BUTTON_NUM_DEBOUNCE_CHECKS      5 // Number of times a button bounces, after which we consider it as a single button press
+//#define BUTTON_DEBOUNCE_POS_JOYSTICK    0x01
+//#define BUTTON_DEBOUNCE_POS_ROTARY      0x02
 
 static volatile pTypeRotaryCallback a; // global volatile function pointer for joystick button callback
-static volatile pTypeRotaryCallback b;     // global volatile function pointer for rotary button callback
+static volatile pTypeRotaryCallback b; // global volatile function pointer for rotary button callback
 
 ISR(INT0_vect)
 {
@@ -93,81 +96,92 @@ bool button_isBPressed(void)
         return 0;
     }
 }
-
+//*************************************************************************************************
 void check_rotary()
 {
     uart_init(57600);
     static uint8_t p = 0;
     static bool sampling = false;
-    bool button_a = PIN_REGISTER(A_ROTARY_PORT) & (1 << A_ROTARY_PIN);
-    bool button_b = PIN_REGISTER(B_ROTARY_PORT) & (1 << B_ROTARY_PIN);
-    if (button_a != button_b)
+    //bool button_a = PIN_REGISTER(A_ROTARY_PORT) & (1 << A_ROTARY_PIN);
+    //bool button_b = PIN_REGISTER(B_ROTARY_PORT) & (1 << B_ROTARY_PIN);
+    /*   if (button_a != button_b)
     {
         sampling = true;
         if (button_a == 0)
         {
-            fprintf(uartout, "CC and button_a is pressed\n");
+            fprintf(uartout, "C and button_a is pressed\n");
         }
         else if (button_b == 0)
         {
             fprintf(uartout, "AC and button_b is pressed\n");
         }
     }
-  /*
+  
     if (sampling && p < 122)
     {
         lcd_setPixel((button_a) ? 0 : 1, p, true);
         lcd_setPixel((button_b) ? 4 : 5, p, true);
         p++;
     }
-
-    //For debouncing the buttons
-    static uint8_t state[BUTTON_NUM_DEBOUNCE_CHECKS] = {};
-    static uint8_t index = 0;
-    static uint8_t debouncedState = 0;
-    uint8_t lastDebouncedState = debouncedState;
-    // each bit in every state byte represents one button
-    state[index] = 0;
-    if (button_isJoystickPressed())
-    {
-        state[index] |= BUTTON_DEBOUNCE_POS_JOYSTICK;
-    }
-    if (button_isRotaryPressed())
-    {
-        state[index] |= BUTTON_DEBOUNCE_POS_ROTARY;
-    }
-
-    index++;
-
-    if (index == BUTTON_NUM_DEBOUNCE_CHECKS)
-    {
-        index = 0;
-    }
-    // init compare value and compare with ALL reads, only if
-    // we read BUTTON_NUM_DEBOUNCE_CHECKS consistent "1's" in the state
-    // array, the button at this position is considered pressed
-    uint8_t j = 0xFF;
-    for (uint8_t i = 0; i < BUTTON_NUM_DEBOUNCE_CHECKS; i++)
-    {
-        j = j & state[i];
-    }
-
-    debouncedState = j;
-
-    //for calling the corresponding button callback as soon as the debouncedState indicates a (debounced) button press (not release)
-
-    if ((lastDebouncedState != debouncedState) & ((debouncedState & BUTTON_DEBOUNCE_POS_JOYSTICK) == BUTTON_DEBOUNCE_POS_JOYSTICK))
-    {
-        joystick();
-    }
-
-    else if ((lastDebouncedState != debouncedState) & ((debouncedState & BUTTON_DEBOUNCE_POS_ROTARY) == BUTTON_DEBOUNCE_POS_ROTARY))
-    {
-        rotary();
-    }
 */
+    //For debouncing the buttons
+static uint8_t state[BUTTON_NUM_DEBOUNCE_CHECKS] = {};
+static uint8_t index = 0;
+static uint8_t debouncedState = 0;
+uint8_t lastDebouncedState = debouncedState;
+uint8_t prelastDebouncedState = lastDebouncedState;
+// each bit in every state byte represents one button
+state[index] = 0;
+if(button_isAPressed())
+{
+    state[index] |= 0x01;
+}
+if(button_isBPressed())
+{
+    state[index] |= 0x02;
+    //state[index] = 2;
 }
 
+index++;
+
+if (index == BUTTON_NUM_DEBOUNCE_CHECKS) 
+{
+    index = 0;
+}
+// init compare value and compare with ALL reads, only if
+// we read BUTTON_NUM_DEBOUNCE_CHECKS consistent "1's" in the state
+// array, the button at this position is considered pressed
+uint8_t j = 0xFF;
+for(uint8_t i = 0; i < BUTTON_NUM_DEBOUNCE_CHECKS; i++)
+{
+    j =  j & state[i];  
+    
+}
+
+debouncedState = j;
+
+//for calling the corresponding button callback as soon as the debouncedState indicates a (debounced) button press (not release)
+
+if ((lastDebouncedState!=debouncedState) & (lastDebouncedState == 0x01) & (flag==0))
+    {
+     
+      flag++;
+       fprintf(uartout, "Clockwise and right is pressed\n");
+    
+       
+       
+    }
+
+else if ((lastDebouncedState!=debouncedState) & (lastDebouncedState == 0x02) & (flag==0))
+    {
+      flag++;
+        fprintf(uartout, "AntiClockwise and left is pressed\n");
+    }
+else if ((lastDebouncedState!=debouncedState) & !(lastDebouncedState == 0x03) )
+{
+    flag=0;
+}
+}
 void rotary_init()
 {
     DDR_REGISTER(A_ROTARY_PORT) &= (~(1 << A_ROTARY_PIN));
