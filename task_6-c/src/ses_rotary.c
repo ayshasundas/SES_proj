@@ -13,13 +13,13 @@
 #define B_ROTARY_PORT PORTG //PG2
 #define B_ROTARY_PIN 2
 
-static volatile int counter = 0
+static volatile int counter = 0;
 
     //#define BUTTON_NUM_DEBOUNCE_CHECKS      5 // Number of times a button bounces, after which we consider it as a single button press
     //#define BUTTON_DEBOUNCE_POS_JOYSTICK    0x01
     //#define BUTTON_DEBOUNCE_POS_ROTARY      0x02
 
-    static volatile pTypeRotaryCallback a; // global volatile function pointer for joystick button callback
+static volatile pTypeRotaryCallback a; // global volatile function pointer for joystick button callback
 static volatile pTypeRotaryCallback b;     // global volatile function pointer for rotary button callback
 
 ISR(INT0_vect)
@@ -113,6 +113,7 @@ void check_rotary()
             fprintf(uartout, "AC and button_b is pressed\n");
         }
     }
+  /*
     if (sampling && p < 122)
     {
         lcd_setPixel((button_a) ? 0 : 1, p, true);
@@ -164,6 +165,7 @@ void check_rotary()
     {
         rotary();
     }
+*/
 }
 
 void rotary_init()

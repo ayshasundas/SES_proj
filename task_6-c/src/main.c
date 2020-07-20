@@ -2,6 +2,7 @@
 #include "ses_common.h"
 #include "ses_uart.h"
 #include "ses_lcd.h"
+#include "ses_timer.h"
 
 
 int main ()
