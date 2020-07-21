@@ -28,7 +28,9 @@ enum
     JOYSTICK_PRESSED,
     ROTARY_PRESSED,
     ALARM_TIME_MATCHED,
-    TIME_5SEC_EXPIRED
+    TIME_5SEC_EXPIRED,
+    ACW_ROTARY,
+    CW_ROTARY
 };
 
 typedef struct time_t

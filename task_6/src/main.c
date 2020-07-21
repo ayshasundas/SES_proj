@@ -5,6 +5,7 @@
 #include "ses_uart.h"
 #include "ses_lcd.h"
 #include "ses_button.h"
+#include "ses_rotary.h"
 #include "Fsm.h"
 #include <inttypes.h>
 #include <stdint.h>
@@ -19,7 +20,7 @@
 #define TRANSITION(newState) (fsm->state = newState, RET_TRANSITION)
 
 int setting_alarm = 0;
-static taskDescriptor td1, td2, td3, td4, td5, td6, td7;
+static taskDescriptor td1, td2, td3, td4, td5, td6, td7, td8, td9, td10;
 time_t Alarm_time, Sys_time;
 Fsm clock;
 
@@ -144,7 +145,16 @@ fsmReturnStatus set_minutes(Fsm *fsm, const Event *event)
         }
         return RET_HANDLED;
     case ROTARY_PRESSED:
+    case CW_ROTARY:
         mm = (mm + 1) % For_Overflow_min;
+        lcd_init();
+        lcd_clear();
+        fprintf(lcdout, "%02d:%02d\n", Sys_time.hour, mm);
+        fprintf(lcdout, "Setting Min:\n");
+        return RET_HANDLED;
+    case ACW_ROTARY:
+
+        mm = (mm + (For_Overflow_min - 1)) % For_Overflow_min;
         lcd_init();
         lcd_clear();
         fprintf(lcdout, "%02d:%02d\n", Sys_time.hour, mm);
@@ -198,7 +208,15 @@ fsmReturnStatus set_hours(Fsm *fsm, const Event *event)
 
         return RET_HANDLED;
     case ROTARY_PRESSED:
+    case CW_ROTARY:
         hh = (hh + 1) % For_Overflow_hr;
+        lcd_init();
+        lcd_clear();
+        fprintf(lcdout, "%02d:00\n", hh);
+        fprintf(lcdout, "Setting Hours:\n");
+        return RET_HANDLED;
+    case ACW_ROTARY:
+        hh = (hh + (For_Overflow_hr - 1)) % For_Overflow_hr;
         lcd_init();
         lcd_clear();
         fprintf(lcdout, "%02d:00\n", hh);
@@ -252,6 +270,22 @@ static void rotaryPressedDispatch(void *param)
 {
     Fsm *fsm = (Fsm *)param;
     Event e = {.signal = ROTARY_PRESSED};
+    fsm_dispatch(fsm, &e);
+}
+
+/********************************************* CW Rotary Dispatch Task *******************************************/
+static void CWrotary_Dispatch(void *param)
+{
+    Fsm *fsm = (Fsm *)param;
+    Event e = {.signal = CW_ROTARY};
+    fsm_dispatch(fsm, &e);
+}
+
+/********************************************* ACW Rotary Dispatch Task *******************************************/
+static void ACWrotary_Dispatch(void *param)
+{
+    Fsm *fsm = (Fsm *)param;
+    Event e = {.signal = ACW_ROTARY};
     fsm_dispatch(fsm, &e);
 }
 
@@ -318,6 +352,22 @@ void Green_Led_Toggle(void *ptr)
     led_greenToggle(); //toggles synchronously with the counter of the seconds
 }
 
+/********************************************* Check Rotary State Task *******************************************/
+void check_rotary_state(void *ptr)
+{
+    check_rotary();
+}
+
+void callback_for_CWrotary()
+{
+    scheduler_add(&td9); // Add CWrotary_Dispatch task
+}
+
+void callback_for_ACWrotary()
+{
+    scheduler_add(&td10); // Add ACWrotary_Dispatch task
+}
+
 /********************************************* Main *******************************************/
 int main()
 {
@@ -328,10 +378,13 @@ int main()
     lcd_init();
     button_setJoystickButtonCallback(callback_for_joystick);
     button_setRotaryButtonCallback(callback_for_rotary);
+    rotary_setClockwiseCallback(callback_for_CWrotary);
+    rotary_setCounterClockwiseCallback(callback_for_ACWrotary);
     led_greenInit();
     led_redInit();
     led_yellowInit();
     button_init(1);
+    rotary_init();
 
     td1.period = 5;
     td1.expire = td1.period;
@@ -372,7 +425,25 @@ int main()
     td7.param = NULL;
     td7.task = Green_Led_Toggle;
 
+    td8.period = 5;
+    td8.expire = td8.period;
+    td8.param = NULL;
+    td8.task = check_rotary_state;
+
+    td9.period = 0;
+    td9.expire = 0;
+    td9.execute = 1;
+    td9.param = &clock;
+    td9.task = CWrotary_Dispatch;
+
+    td10.period = 0;
+    td10.expire = 0;
+    td10.execute = 1;
+    td10.param = &clock;
+    td10.task = ACWrotary_Dispatch;
+
     scheduler_add(&td1);
+    scheduler_add(&td8);
 
     scheduler_init();
 
