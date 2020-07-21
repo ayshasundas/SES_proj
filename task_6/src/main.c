@@ -9,12 +9,12 @@
 #include <inttypes.h>
 #include <stdint.h>
 // Definitions
-#define Hour_Conversion     3600000
-#define Min_Conversion      60000
-#define Sec_Conversion      1000
-#define For_Overflow_min    60
-#define For_Overflow_hr     24
-#define For_5sec            20
+#define Hour_Conversion 3600000
+#define Min_Conversion 60000
+#define Sec_Conversion 1000
+#define For_Overflow_min 60
+#define For_Overflow_hr 24
+#define For_5sec 20
 
 #define TRANSITION(newState) (fsm->state = newState, RET_TRANSITION)
 
@@ -45,7 +45,7 @@ void Milli_to_Time(systemTime_t cT, time_t *t)
 
 /********************************************* Time_to_Milli Func *******************************************/
 systemTime_t Time_to_Milli(time_t t)
-{   
+{
     //takes time value in standard format and returns it in milliseconds
     return ((t.hour * Hour_Conversion) + (t.minute * Min_Conversion));
 }
@@ -56,14 +56,14 @@ fsmReturnStatus Alarm_beep(Fsm *fsm, const Event *event)
     switch (event->signal)
     {
     case ENTRY:
-        scheduler_add(&td6);//Red_Led_Toggle task
+        scheduler_add(&td6); //Red_Led_Toggle task
         return RET_HANDLED;
     case JOYSTICK_PRESSED:
     case ROTARY_PRESSED:
     case TIME_5SEC_EXPIRED:
         return TRANSITION(normal_mode);
     case EXIT:
-        scheduler_remove(&td6);//Red_Led_Toggle task
+        scheduler_remove(&td6); //Red_Led_Toggle task
         led_redOff();
         fsm->isAlarmEnabled = 0;
         led_yellowOff();
@@ -80,40 +80,37 @@ fsmReturnStatus normal_mode(Fsm *fsm, const Event *event)
     {
 
     case ENTRY:
-        scheduler_add(&td4);//curr_time_display task
+        scheduler_add(&td4); //curr_time_display task
         return RET_HANDLED;
     case ROTARY_PRESSED:
         fsm->isAlarmEnabled = !(fsm->isAlarmEnabled);
         if (fsm->isAlarmEnabled)
         {
             led_yellowOn();
-            scheduler_add(&td5);// Alarm_ON task
+            scheduler_add(&td5); // Alarm_ON task
         }
         else
         {
             led_yellowOff();
-            scheduler_remove(&td5);// Alarm_ON task
+            scheduler_remove(&td5); // Alarm_ON task
         }
 
         return RET_HANDLED;
     case JOYSTICK_PRESSED:
-        scheduler_remove(&td4);//curr_time_display task
+        scheduler_remove(&td4); //curr_time_display task
         if (fsm->isAlarmEnabled)
         {
-            scheduler_remove(&td5);// Alarm_ON task
+            scheduler_remove(&td5); // Alarm_ON task
         }
-        setting_alarm = 1;
+
         return TRANSITION(set_hours);
     case ALARM_TIME_MATCHED:
-        scheduler_remove(&td5);// Alarm_ON task
-        setting_alarm = 0;
+        scheduler_remove(&td5); // Alarm_ON task
+
         return TRANSITION(Alarm_beep);
     case EXIT:
-     
-     //We cannot toggle setting_alarm variable like this, this results in alternating Alarm and Clock setting modes
-     
-     /*
-        if (!setting_alarm)
+
+        if (fsm->state == set_hours)
         {
             setting_alarm = 1;
         }
@@ -121,7 +118,6 @@ fsmReturnStatus normal_mode(Fsm *fsm, const Event *event)
         {
             setting_alarm = 0;
         }
-    */
 
         return RET_HANDLED;
     default:
@@ -162,7 +158,7 @@ fsmReturnStatus set_minutes(Fsm *fsm, const Event *event)
         {
             Sys_time.minute = mm;
             scheduler_setTime(Time_to_Milli(Sys_time)); //Updating System time
-            scheduler_add(&td7);//green_led_toggle task
+            scheduler_add(&td7);                        //green_led_toggle task
         }
         else
         {
@@ -170,7 +166,7 @@ fsmReturnStatus set_minutes(Fsm *fsm, const Event *event)
             Alarm_time.minute = mm;
             if (fsm->isAlarmEnabled)
             {
-                scheduler_add(&td5);//Alarm_ON task
+                scheduler_add(&td5); //Alarm_ON task
             }
         }
 
@@ -319,7 +315,7 @@ void Red_Led_Toggle(void *ptr)
 /********************************************* Green_Led_Toggle Task *******************************************/
 void Green_Led_Toggle(void *ptr)
 {
-    led_greenToggle();//toggles synchronously with the counter of the seconds
+    led_greenToggle(); //toggles synchronously with the counter of the seconds
 }
 
 /********************************************* Main *******************************************/

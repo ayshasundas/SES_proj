@@ -16,7 +16,7 @@
 #define BUTTON_NUM_DEBOUNCE_CHECKS 5
 
 static volatile int counter = 0;
-static volatile int flag=0;
+static volatile int flag = 0;
 
 //#define BUTTON_NUM_DEBOUNCE_CHECKS      5 // Number of times a button bounces, after which we consider it as a single button press
 //#define BUTTON_DEBOUNCE_POS_JOYSTICK    0x01
@@ -24,36 +24,6 @@ static volatile int flag=0;
 
 static volatile pTypeRotaryCallback a; // global volatile function pointer for joystick button callback
 static volatile pTypeRotaryCallback b; // global volatile function pointer for rotary button callback
-
-ISR(INT0_vect)
-{
-    EIFR |= (1 << INTF0);
-    if (counter)
-    {
-        //b();
-        fprintf(uartout, "AC and b is pressed\n");
-        counter = 0;
-    }
-    else
-    {
-        counter = 1;
-    }
-}
-
-ISR(INT1_vect)
-{
-    EIFR |= (1 << INTF1);
-    if (counter)
-    {
-        //a();
-
-        counter = 0;
-    }
-    else
-    {
-        counter = 1;
-    }
-}
 
 void rotary_setClockwiseCallback(pTypeRotaryCallback callback)
 {
@@ -100,87 +70,55 @@ bool button_isBPressed(void)
 void check_rotary()
 {
     uart_init(57600);
-    static uint8_t p = 0;
-    static bool sampling = false;
-    //bool button_a = PIN_REGISTER(A_ROTARY_PORT) & (1 << A_ROTARY_PIN);
-    //bool button_b = PIN_REGISTER(B_ROTARY_PORT) & (1 << B_ROTARY_PIN);
-    /*   if (button_a != button_b)
+    static uint8_t state[BUTTON_NUM_DEBOUNCE_CHECKS] = {};
+    static uint8_t index = 0;
+    static uint8_t debouncedState = 0;
+    uint8_t lastDebouncedState = debouncedState;
+    state[index] = 0;
+    if (button_isAPressed())
     {
-        sampling = true;
-        if (button_a == 0)
-        {
-            fprintf(uartout, "C and button_a is pressed\n");
-        }
-        else if (button_b == 0)
-        {
-            fprintf(uartout, "AC and button_b is pressed\n");
-        }
+        state[index] |= 0x01;
     }
-  
-    if (sampling && p < 122)
+    if (button_isBPressed())
     {
-        lcd_setPixel((button_a) ? 0 : 1, p, true);
-        lcd_setPixel((button_b) ? 4 : 5, p, true);
-        p++;
+        state[index] |= 0x02;
+        
     }
-*/
-    //For debouncing the buttons
-static uint8_t state[BUTTON_NUM_DEBOUNCE_CHECKS] = {};
-static uint8_t index = 0;
-static uint8_t debouncedState = 0;
-uint8_t lastDebouncedState = debouncedState;
-uint8_t prelastDebouncedState = lastDebouncedState;
-// each bit in every state byte represents one button
-state[index] = 0;
-if(button_isAPressed())
-{
-    state[index] |= 0x01;
-}
-if(button_isBPressed())
-{
-    state[index] |= 0x02;
-    //state[index] = 2;
-}
 
-index++;
+    index++;
 
-if (index == BUTTON_NUM_DEBOUNCE_CHECKS) 
-{
-    index = 0;
-}
-// init compare value and compare with ALL reads, only if
-// we read BUTTON_NUM_DEBOUNCE_CHECKS consistent "1's" in the state
-// array, the button at this position is considered pressed
-uint8_t j = 0xFF;
-for(uint8_t i = 0; i < BUTTON_NUM_DEBOUNCE_CHECKS; i++)
-{
-    j =  j & state[i];  
+    if (index == BUTTON_NUM_DEBOUNCE_CHECKS)
+    {
+        index = 0;
+    }
     
-}
-
-debouncedState = j;
-
-//for calling the corresponding button callback as soon as the debouncedState indicates a (debounced) button press (not release)
-
-if ((lastDebouncedState!=debouncedState) & (lastDebouncedState == 0x01) & (flag==0))
+    uint8_t j = 0xFF;
+    for (uint8_t i = 0; i < BUTTON_NUM_DEBOUNCE_CHECKS; i++)
     {
-     
-      flag++;
-       fprintf(uartout, "Clockwise and right is pressed\n");
+        j = j & state[i];
+        
+    }
     
-       
-       
+    debouncedState = j;
+
+    
+
+    if ((lastDebouncedState != debouncedState) & (lastDebouncedState == 0x01) & (flag == 0))
+    {
+
+        flag++;
+        fprintf(uartout, "Clockwise and right is pressed\n");
     }
 
-else if ((lastDebouncedState!=debouncedState) & (lastDebouncedState == 0x02) & (flag==0))
+    else if ((lastDebouncedState != debouncedState) & (lastDebouncedState == 0x02) & (flag == 0))
     {
-      flag++;
+        flag++;
         fprintf(uartout, "AntiClockwise and left is pressed\n");
     }
-else if ((lastDebouncedState!=debouncedState) & !(lastDebouncedState == 0x03) )
-{
-    flag=0;
-}
+    else if ((lastDebouncedState != debouncedState) & !(lastDebouncedState == 0x03))
+    {
+        flag = 0;
+    }
 }
 void rotary_init()
 {

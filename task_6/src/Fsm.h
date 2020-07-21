@@ -62,7 +62,7 @@ inline static void fsm_dispatch(Fsm *fsm, const Event *event)
     if (r == RET_TRANSITION)
     {
         s(fsm, &exitEvent);               //< call exit action of last state
-        r = fsm->state(fsm, &entryEvent); //< call entry action of new state
+        fsm->state(fsm, &entryEvent); //< call entry action of new state
     }
 }
 
