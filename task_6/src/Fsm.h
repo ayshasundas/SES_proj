@@ -4,6 +4,7 @@
 /*INCLUDES *******************************************************************/
 #include "ses_common.h"
 
+#define TRANSITION(newState) (fsm->state = newState, RET_TRANSITION)
 /* TYPES ********************************************************************/
 typedef struct fsm_s Fsm;        //< typedef for alarm clock state machine
 typedef struct event_s Event;    //< event type for alarm clock fsm
@@ -11,6 +12,13 @@ typedef uint8_t fsmReturnStatus; //< typedef to be used with enum
 
 /** typedef for state event handler functions */
 typedef fsmReturnStatus (*State)(Fsm *, const Event *);
+
+/** Event Handlers ***************************/
+fsmReturnStatus clock_init(Fsm *fsm, const Event *event);
+fsmReturnStatus set_hours(Fsm *fsm, const Event *event);
+fsmReturnStatus set_minutes(Fsm *fsm, const Event *event);
+fsmReturnStatus normal_mode(Fsm *fsm, const Event *event);
+fsmReturnStatus Alarm_beep(Fsm *fsm, const Event *event);
 
 /** return values */
 enum

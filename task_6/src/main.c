@@ -17,15 +17,14 @@
 #define For_Overflow_hr 24
 #define For_5sec 20
 
-#define TRANSITION(newState) (fsm->state = newState, RET_TRANSITION)
 
 int setting_alarm = 0;
 static taskDescriptor td1, td2, td3, td4, td5, td6, td7, td8, td9, td10;
 time_t Alarm_time, Sys_time;
 Fsm clock;
 
-fsmReturnStatus set_hours(Fsm *fsm, const Event *event);
-fsmReturnStatus normal_mode(Fsm *fsm, const Event *event);
+
+
 
 /********************************************* Milli_to_Time Func *******************************************/
 void Milli_to_Time(systemTime_t cT, time_t *t)
