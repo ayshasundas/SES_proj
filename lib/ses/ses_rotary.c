@@ -108,12 +108,14 @@ void check_rotary()
 
         flag++;
         fprintf(uartout, "Clockwise and right is pressed\n");
+        a();
     }
 
     else if ((lastDebouncedState != debouncedState) & (lastDebouncedState == 0x02) & (flag == 0))
     {
         flag++;
         fprintf(uartout, "AntiClockwise and left is pressed\n");
+        b();
     }
     else if ((lastDebouncedState != debouncedState) & !(lastDebouncedState == 0x03))
     {
