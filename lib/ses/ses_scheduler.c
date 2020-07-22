@@ -155,10 +155,12 @@ void scheduler_remove(taskDescriptor *toRemove)
 
 systemTime_t scheduler_getTime()
 {
+	systemTime_t t=0;
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 	{
-		return curr_time;
+		t=curr_time;
 	}
+	return t;
 }
 
 void scheduler_setTime(systemTime_t time)
