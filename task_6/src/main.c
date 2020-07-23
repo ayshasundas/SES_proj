@@ -27,7 +27,7 @@ Fsm clock;
 
 
 /********************************************* Milli_to_Time Func *******************************************/
-void Milli_to_Time(systemTime_t cT, time_t *t)
+static void Milli_to_Time(systemTime_t cT, time_t *t)
 {
     //Takes time value in milli seconds and stores the converted value in a structure time_t
     uint32_t temp = ((uint32_t)cT / (uint32_t)Hour_Conversion);
@@ -44,7 +44,7 @@ void Milli_to_Time(systemTime_t cT, time_t *t)
 }
 
 /********************************************* Time_to_Milli Func *******************************************/
-systemTime_t Time_to_Milli(time_t t)
+static systemTime_t Time_to_Milli(time_t t)
 {
     //takes time value in standard format and returns it in milliseconds
     return ((t.hour * Hour_Conversion) + (t.minute * Min_Conversion));
